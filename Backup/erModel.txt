@@ -1,0 +1,46 @@
+Person {
+    id: int
+    name: string
+    address: string
+}
+
+DriversLicense {
+    id: int
+    number: int
+    date: date
+}
+
+Car {
+    id: int
+    plate: string
+    color: string
+}
+
+Garage {
+    id: int
+    name: string
+    address: string
+}
+
+InsuranceCompany {
+    id: int
+    name: string
+    phone: string
+}
+
+Registration (Person, DriversLicense) 1:1 {
+    observation: string
+}
+
+Drives (Person, Car) 1:N {
+
+}
+
+Contract (Person, Car, InsuranceCompany) N:N:N {
+    id: int
+}
+
+Repairs (Car, Garage) N:N {
+    date: date
+    fix: string
+}

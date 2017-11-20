@@ -1,0 +1,808 @@
+// ===== Entidades / relacionamentos =====
+// Obs, neste modelo, o relacionamento 1:1 pode ser incompleto,
+// ou seja, pode existir pessoa sem DriversLicense/Registration
+// e pode existir DriversLicense sem Pessoa/Registration
+//
+// Essa generalização é importante para que o algoritmo funcione
+// em qualquer situação (ainda que não seja muito real)
+
+Person {
+    id: int
+    name: string
+    address: string
+}
+
+DriversLicense {
+    id: int
+    number: string
+    date: date
+}
+
+Registration (Person, DriversLicense) 1:1 {
+    observation: string
+}
+
+// ===== Exemplos de opções de mapeamento =====
+// Obs: os exemplos a seguir seguem a estrutura da gramática
+//    DocumentType.g4
+// Opções 1a-1d:
+//    - Existe um documento principal (main=true), dedicado, para cada entidade
+//    - Relacionamento aparece como um documento dedicado
+//    - Entidades relacionadas aparecem como main=false
+//         (referenciadas/embutidas/duplicadas/incompletas)
+//         no DocumentType do relacionamento, com todos ou alguns de
+//         seus atributos
+// Opções 2a-2h:
+//    - Existe um documento principal, dedicado, para cada entidade
+//    - Relacionamento aparece como documento dedicado
+//    - Entidades relacionadas e relacionamento aparecem como main=false
+//         (referenciadas/embutidas/duplicadas/incompletas)
+//         no DocumentType da outra entidade, com todos ou alguns de
+//         seus atributos
+// Opções 3a-3h:
+//    - Existe um documento principal, dedicado, para cada entidade
+//    - Relacionamento não aparece como documento dedicado
+//    - Entidades relacionadas e relacionamento aparecem como main=false
+//         (referenciadas/embutidas/duplicadas/incompletas)
+//         no DocumentType da outra entidade, com todos ou alguns de
+//         seus atributos
+// Opções 4a-4h:
+//    - Existe um documento principal, dedicado, para uma entidade apenas
+//    - Entidades relacionadas e relacionamento aparecem como main=false
+//         (referenciadas/embutidas/duplicadas/incompletas)
+//         no DocumentType da outra entidade, com todos ou alguns de
+//         seus atributos
+// Outras opções?
+
+
+// ===== opção 1a =====
+// Um documento para cada entidade e relacionamento
+// e atributos de Person e DriversLicense (todos ou alguns)
+// referenciados/duplicados no DocumentType do relacionamento
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id     : int       [ Person. id ]
+    fName   : string    [ Person.name ]
+    fAddress: string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true), DriversLicense(main=false), Person(main=false) ]
+{
+    _id                 : int       [ ]
+    observation         : string    [ Registration.observation ]
+    fPersonId           : int       [ Person.id ]               // opcional
+    fName               : string    [ Person.name ]             // opcional
+    fAddress            : string    [ Person.address ]          // opcional
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+// ===== MongoDB opção 1b =====
+// Um documento para cada entidade e relacionamento
+// e atributos de DriversLicense (todos ou alguns)
+// referenciados/duplicados no DocumentType do relacionamento
+// e atributos de Person (todos ou alguns)
+// embutidos/duplicados no DocumentType do relacionamento
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id     : int       [ Person. id ]
+    fName   : string    [ Person.name ]
+    fAddress: string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true), DriversLicense(main=false) ]
+{
+    _id                 : int       [ ]
+    observation         : string    [ Registration.observation ]
+    fPerson             : DocTypePerson [ Person(main=false) ]  // opcional
+    {
+        fPersonId       : int       [ Person.id ]               // opcional
+        fName           : string    [ Person.name ]             // opcional
+        fAddress        : string    [ Person.address ]          // opcional
+    }
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+// ===== MongoDB opção 1c =====
+// Um documento para cada entidade e relacionamento
+// e atributos de Person (todos ou alguns)
+// referenciados/duplicados no DocumentType do relacionamento
+// e atributos de DriversLicense (todos ou alguns)
+// embutidos/duplicados no DocumentType do relacionamento
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id     : int       [ Person. id ]
+    fName   : string    [ Person.name ]
+    fAddress: string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true), Person(main=false) ]
+{
+    _id                     : int       [ ]
+    observation             : string    [ Registration.observation ]
+    fPersonId               : int       [ Person.id ]               // opcional
+    fName                   : string    [ Person.name ]             // opcional
+    fAddress                : string    [ Person.address ]          // opcional
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]  // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+        fNumber             : int       [ DriversLicense.number ]   // opcional
+        fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+// ===== MongoDB opção 1d =====
+// Um documento para cada entidade e relacionamento
+// e atributos de Person (todos ou alguns)
+// embutidos/duplicados no DocumentType do relacionamento
+// e atributos de DriversLicense (todos ou alguns)
+// embutidos/duplicados no DocumentType do relacionamento
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id     : int       [ Person. id ]
+    fName   : string    [ Person.name ]
+    fAddress: string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id                     : int       [ ]
+    observation             : string    [ Registration.observation ]
+    fPerson                 : DocTypePerson [ Person(main=false) ]  // opcional
+    {
+        fPersonId           : int       [ Person.id ]               // opcional
+        fName               : string    [ Person.name ]             // opcional
+        fAddress            : string    [ Person.address ]          // opcional
+    }
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]  // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+        fNumber             : int       [ DriversLicense.number ]   // opcional
+        fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+// ===== MongoDB opção 2a =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+    observation             : string    [ Registration.observation ]    // opcional
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]      // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]           // opcional
+        fNumber             : int       [ DriversLicense.number ]       // opcional
+        fDate               : date      [ DriversLicense.date ]         // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2b =====
+// Um documento para cada entidade
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false), DriversLicense(main=false) ]
+{
+    _id                 : int       [ Person.id ]
+    fName               : string    [ Person.name ]
+    fAddress            : string    [ Person.address ]
+    observation         : string    [ Registration.observation ]// opcional
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2c =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id             : int           [ DriversLicense.id ]
+    fNumber         : string        [ DriversLicense.number ]
+    fDate           : date          [ DriversLicense.date ]
+    observation     : string        [ Registration.observation ]    // opcional
+    fPerson         : DocTypePerson [ Person(main=false) ]          // opcional
+        fPersonId   : int           [ Person.id ]                   // opcional
+        fName       : string        [ Person.number ]               // opcional
+        fAddress    : string        [ Person.date ]                 // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2d =====
+// Um documento para cada entidade
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// Person é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false), Person(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    observation : string        [ Registration.observation ]    // opcional
+    fPersonId   : int           [ Person.id ]                   // opcional
+    fName       : string        [ Person.number ]               // opcional
+    fAddress    : string        [ Person.date ]                 // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2e =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]      // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]           // opcional
+        fNumber             : int       [ DriversLicense.number ]       // opcional
+        fDate               : date      [ DriversLicense.date ]         // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id         : int       [ DriversLicense.id ]
+    fNumber     : string    [ DriversLicense.number ]
+    fDate       : date      [ DriversLicense.date ]
+    observation : string    [ Registration.observation ]    // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2f =====
+// Um documento para cada entidade
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id                 : int       [ Person.id ]
+    fName               : string    [ Person.name ]
+    fAddress            : string    [ Person.address ]
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id         : int       [ DriversLicense.id ]
+    fNumber     : string    [ DriversLicense.number ]
+    fDate       : date      [ DriversLicense.date ]
+    observation : string    [ Registration.observation ] // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2g =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id             : int           [ Person.id ]
+    fName           : string        [ Person.name ]
+    fAddress        : string        [ Person.address ]
+    observation     : string        [ Registration.observation ]    // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id             : int           [ DriversLicense.id ]
+    fNumber         : string        [ DriversLicense.number ]
+    fDate           : date          [ DriversLicense.date ]
+    fPerson         : DocTypePerson [ Person(main=false) ]          // opcional
+        fPersonId   : int           [ Person.id ]                   // opcional
+        fName       : string        [ Person.number ]               // opcional
+        fAddress    : string        [ Person.date ]                 // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+// ===== MongoDB opção 2h =====
+// Um documento para cada entidade
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// Person é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id         : int           [ Person.id ]
+    fName       : string        [ Person.name ]
+    fAddress    : string        [ Person.address ]
+    observation : string        [ Registration.observation ]    // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Person(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    fPersonId   : int           [ Person.id ]                   // opcional
+    fName       : string        [ Person.number ]               // opcional
+    fAddress    : string        [ Person.date ]                 // opcional
+}
+
+DocTypeRegistration [ Registration(main=true) ]
+{
+    _id         : int       []
+    observation : string    [ Registration.observation ]
+}
+
+
+// ===== MongoDB opção 3a =====
+// Um documento para cada entidade
+// Registration é referenciado dentro de DocTypePerson
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+    observation             : string    [ Registration.observation ]    // opcional
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]      // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]           // opcional
+        fNumber             : int       [ DriversLicense.number ]       // opcional
+        fDate               : date      [ DriversLicense.date ]         // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+// ===== MongoDB opção 3b =====
+// Um documento para cada entidade
+// Registration é referenciado dentro de DocTypePerson
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false), DriversLicense(main=false) ]
+{
+    _id                 : int       [ Person.id ]
+    fName               : string    [ Person.name ]
+    fAddress            : string    [ Person.address ]
+    observation         : string    [ Registration.observation ]// opcional
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id     : int       [ DriversLicense.id ]
+    fNumber : string    [ DriversLicense.number ]
+    fDate   : date      [ DriversLicense.date ]
+}
+
+// ===== MongoDB opção 3c =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado dentro de DocTypeDriversLicense
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id             : int           [ DriversLicense.id ]
+    fNumber         : string        [ DriversLicense.number ]
+    fDate           : date          [ DriversLicense.date ]
+    observation     : string        [ Registration.observation ]    // opcional
+    fPerson         : DocTypePerson [ Person(main=false) ]          // opcional
+        fPersonId   : int           [ Person.id ]                   // opcional
+        fName       : string        [ Person.number ]               // opcional
+        fAddress    : string        [ Person.date ]                 // opcional
+}
+
+// ===== MongoDB opção 3d =====
+// Um documento para cada entidade
+// Registration é referenciado dentro de DocTypeDriversLicense
+// Person é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false), Person(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    observation : string        [ Registration.observation ]    // opcional
+    fPersonId   : int           [ Person.id ]                   // opcional
+    fName       : string        [ Person.number ]               // opcional
+    fAddress    : string        [ Person.date ]                 // opcional
+}
+
+// ===== MongoDB opção 3e =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado dentro de DocTypeDriversLicense
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int       [ Person.id ]
+    fName                   : string    [ Person.name ]
+    fAddress                : string    [ Person.address ]
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]      // opcional
+        fDriversLicenseId   : int       [ DriversLicense.id ]           // opcional
+        fNumber             : int       [ DriversLicense.number ]       // opcional
+        fDate               : date      [ DriversLicense.date ]         // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id         : int       [ DriversLicense.id ]
+    fNumber     : string    [ DriversLicense.number ]
+    fDate       : date      [ DriversLicense.date ]
+    observation : string    [ Registration.observation ]    // opcional
+}
+
+// ===== MongoDB opção 3f =====
+// Um documento para cada entidade
+// Registration é referenciado dentro de DocTypeDriversLicense
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id                 : int       [ Person.id ]
+    fName               : string    [ Person.name ]
+    fAddress            : string    [ Person.address ]
+    fDriversLicenseId   : int       [ DriversLicense.id ]       // opcional
+    fNumber             : int       [ DriversLicense.number ]   // opcional
+    fDate               : date      [ DriversLicense.date ]     // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), DriversLicense(main=false) ]
+{
+    _id         : int       [ DriversLicense.id ]
+    fNumber     : string    [ DriversLicense.number ]
+    fDate       : date      [ DriversLicense.date ]
+    observation : string    [ Registration.observation ] // opcional
+}
+
+// ===== MongoDB opção 3g =====
+// Um documento para cada entidade e relacionamento
+// Registration é referenciado dentro de DocTypePerson
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id             : int           [ Person.id ]
+    fName           : string        [ Person.name ]
+    fAddress        : string        [ Person.address ]
+    observation     : string        [ Registration.observation ]    // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id             : int           [ DriversLicense.id ]
+    fNumber         : string        [ DriversLicense.number ]
+    fDate           : date          [ DriversLicense.date ]
+    fPerson         : DocTypePerson [ Person(main=false) ]          // opcional
+        fPersonId   : int           [ Person.id ]                   // opcional
+        fName       : string        [ Person.number ]               // opcional
+        fAddress    : string        [ Person.date ]                 // opcional
+}
+
+
+// ===== MongoDB opção 3h =====
+// Um documento para cada entidade
+// Registration é referenciado dentro de DocTypePerson
+// Person é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id         : int           [ Person.id ]
+    fName       : string        [ Person.name ]
+    fAddress    : string        [ Person.address ]
+    observation : string        [ Registration.observation ]    // opcional
+}
+
+DocTypeDriversLicense [ DriversLicense(main=true), Person(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    fPersonId   : int           [ Person.id ]                   // opcional
+    fName       : string        [ Person.number ]               // opcional
+    fAddress    : string        [ Person.date ]                 // opcional
+}
+
+// ===== MongoDB opção 4a =====
+// Um documento para Person
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false), DriversLicense(main=false) ]
+{
+    _id                 : int           [ Person.id ]
+    fName               : string        [ Person.name ]
+    fAddress            : string        [ Person.address ]
+    observation         : string        [ Registration.observation ]    // opcional
+    fDriversLicenseId   : int           [ DriversLicense.id ]           // opcional
+    fNumber             : string        [ DriversLicense.number ]       // opcional
+    fDate               : date          [ DriversLicense.date ]         // opcional
+}
+
+// ===== MongoDB opção 4b =====
+// Um documento para Person
+// Registration é embutido/duplicado dentro de DocTypePerson
+// DriversLicense é referenciado/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), DriversLicense(main=false) ]
+{
+    _id                 : int           [ Person.id ]
+    fName               : string        [ Person.name ]
+    fAddress            : string        [ Person.address ]
+    fRegistration       : DocTypeRegistration
+                                        [ Registration(main=false) ]    // opcional
+    {
+        observation     : string        [ Registration.observation ]    // opcional
+    }
+    fDriversLicenseId   : int           [ DriversLicense.id ]           // opcional
+    fNumber             : string        [ DriversLicense.number ]       // opcional
+    fDate               : date          [ DriversLicense.date ]         // opcional
+}
+
+// ===== MongoDB opção 4c =====
+// Um documento para Person
+// Registration é referenciado/duplicado dentro de DocTypePerson
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true), Registration(main=false) ]
+{
+    _id                     : int           [ Person.id ]
+    fName                   : string        [ Person.name ]
+    fAddress                : string        [ Person.address ]
+    observation             : string        [ Registration.observation ]    // opcional
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]          // opcional
+    {
+        fDriversLicenseId   : int           [ DriversLicense.id ]           // opcional
+        fNumber             : string        [ DriversLicense.number ]       // opcional
+        fDate               : date          [ DriversLicense.date ]         // opcional
+    }
+}
+
+// ===== MongoDB opção 4d =====
+// Um documento para Person
+// Registration é embutido/duplicado dentro de DocTypePerson
+// DriversLicense é embutido/duplicado dentro de DocTypePerson
+// com todos ou alguns de seus atributos
+
+DocTypePerson [ Person(main=true) ]
+{
+    _id                     : int           [ Person.id ]
+    fName                   : string        [ Person.name ]
+    fAddress                : string        [ Person.address ]
+    fRegistration           : DocTypeRegistration
+                                    [ Registration(main=false) ]            // opcional
+    {
+        observation         : string        [ Registration.observation ]    // opcional
+    }
+    fDriversLicense         : DocTypeDriversLicense 
+                                    [ DriversLicense(main=false) ]          // opcional
+    {
+        fDriversLicenseId   : int           [ DriversLicense.id ]           // opcional
+        fNumber             : string        [ DriversLicense.number ]       // opcional
+        fDate               : date          [ DriversLicense.date ]         // opcional
+    }
+}
+
+// ===== MongoDB opção 4e =====
+// Um documento para DriversLicense
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// DriversLicense é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypeDriversLicense [ DriversLicense(main=true), Person(main=false), Registration(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    fPersonId   : int           [ Person.id ]                   // opcional
+    fName       : string        [ Person.name ]                 // opcional
+    fAddress    : string        [ Person.address ]              // opcional
+    observation : string        [ Registration.observation ]    // opcional
+}
+
+// ===== MongoDB opção 4f =====
+// Um documento para DriversLicense
+// Registration é embutido/duplicado dentro de DocTypeDriversLicense
+// DriversLicense é referenciado/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypeDriversLicense [ DriversLicense(main=true), Person(main=false) ]
+{
+    _id             : int           [ DriversLicense.id ]
+    fNumber         : string        [ DriversLicense.number ]
+    fDate           : date          [ DriversLicense.date ]
+    fPersonId       : int           [ Person.id ]                   // opcional
+    fName           : string        [ Person.name ]                 // opcional
+    fAddress        : string        [ Person.address ]              // opcional
+    fRegistration   : DocTypeRegistration
+                                    [ Registration(main=false) ]    // opcional
+    {
+        observation : string        [ Registration.observation ]    // opcional
+    }
+}
+
+// ===== MongoDB opção 4g =====
+// Um documento para DriversLicense
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypeDriversLicense [ DriversLicense(main=true), Registration(main=false) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    fPerson     : DocTypePerson [ Person(main=false) ]          // opcional
+    {
+        fPersonId   : int           [ Person.id ]               // opcional
+        fName       : string        [ Person.name ]             // opcional
+        fAddress    : string        [ Person.address ]          // opcional
+    }
+    observation : string        [ Registration.observation ]    // opcional
+}
+
+// ===== MongoDB opção 4h =====
+// Um documento para DriversLicense
+// Registration é referenciado/duplicado dentro de DocTypeDriversLicense
+// Person é embutido/duplicado dentro de DocTypeDriversLicense
+// com todos ou alguns de seus atributos
+
+DocTypeDriversLicense [ DriversLicense(main=true) ]
+{
+    _id         : int           [ DriversLicense.id ]
+    fNumber     : string        [ DriversLicense.number ]
+    fDate       : date          [ DriversLicense.date ]
+    fPerson     : DocTypePerson [ Person(main=false) ]              // opcional
+    {
+        fPersonId   : int           [ Person.id ]                   // opcional
+        fName       : string        [ Person.name ]                 // opcional
+        fAddress    : string        [ Person.address ]              // opcional
+    }
+    fRegistration   : DocTypeRegistration
+                                    [ Registration(main=false) ]    // opcional
+    {
+        observation : string        [ Registration.observation ]    // opcional
+    }
+}

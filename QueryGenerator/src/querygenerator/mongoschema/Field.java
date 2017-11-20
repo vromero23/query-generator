@@ -10,6 +10,7 @@ package querygenerator.mongoschema;
  * @author daniellucredio
  */
 public abstract class Field {
+
     String name;
     DocumentType parent;
 
@@ -25,6 +26,4 @@ public abstract class Field {
     public DocumentType getParent() {
         return parent;
     }
-    
-    
 }

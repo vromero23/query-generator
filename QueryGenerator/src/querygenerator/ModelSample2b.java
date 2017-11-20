@@ -15,7 +15,6 @@ import querygenerator.ermodel.RelationshipEnd;
 import querygenerator.mapping.MappingModel;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.ERMapping;
-import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.FieldMapping;
 import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
@@ -94,7 +93,7 @@ public class ModelSample2b {
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(driversLicense.getAttribute("id"))));
+        docTypePerson.addField(new SimpleField(docTypePerson, "fDriversLicenseid", "int", new FieldMapping(driversLicense.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         mongoSchema.addDocumentType(docTypePerson);
 

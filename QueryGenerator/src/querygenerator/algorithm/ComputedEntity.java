@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import querygenerator.ermodel.Attribute;
 import querygenerator.ermodel.ERElement;
+import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
 
@@ -20,21 +21,25 @@ public class ComputedEntity {
 
     boolean main;
     String name;
+    List<ERElement> erElements;
+    List<DocumentType> documentTypes;
     List<Field> fields;
 
-    private ComputedEntity(boolean main, String name) {
+    private ComputedEntity(boolean main, String name, List<ERElement> erElements, List<DocumentType> documentTypes) {
         this.main = main;
         this.name = name;
         fields = new ArrayList<>();
+        this.erElements = erElements;
+        this.documentTypes = documentTypes;
     }
 
-    public static ComputedEntity createNew(boolean main, String name) {
-        return new ComputedEntity(main, name);
+    public static ComputedEntity createNew(boolean main, String name, List<ERElement> erElements, List<DocumentType> documentTypes) {
+        return new ComputedEntity(main, name, erElements, documentTypes);
     }
 
     public static ComputedEntity createCopy(ComputedEntity ce) {
         if (ce != null) {
-            ComputedEntity ret = new ComputedEntity(ce.isMain(), ce.getName());
+            ComputedEntity ret = new ComputedEntity(ce.isMain(), ce.getName(), ce.getErElements(), ce.getDocumentTypes());
             for (Field f : ce.fields) {
                 ret.addField(f);
             }
@@ -49,6 +54,14 @@ public class ComputedEntity {
 
     public String getName() {
         return name;
+    }
+
+    public List<ERElement> getErElements() {
+        return erElements;
+    }
+
+    public List<DocumentType> getDocumentTypes() {
+        return documentTypes;
     }
 
     public List<Field> getFields() {
@@ -91,7 +104,14 @@ public class ComputedEntity {
     public String toString() {
         String ret = "";
         ret += "(main=" + main + ") ";
-        ret += name + "\n";
+        ret += name + " [ ";
+        for(int i=0;i<documentTypes.size();i++) {
+            ret += documentTypes.get(i).getName();
+            if(i < documentTypes.size()-1) {
+                ret += ", ";
+            }
+        }
+        ret += " ]\n";
         ret += "{";
         ret += "\n";
         for (Field f : fields) {
@@ -101,6 +121,31 @@ public class ComputedEntity {
         ret += "}";
         ret += "\n";
         return ret;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ComputedEntity)) {
+            return false;
+        }
+        ComputedEntity otherCE = (ComputedEntity) obj;
+        if (this.main != otherCE.main) {
+            return false;
+        }
+        if (!this.name.equals(otherCE.name)) {
+            return false;
+        }
+        if (this.fields.size() != otherCE.fields.size()) {
+            return false;
+        }
+        for (int i = 0; i < fields.size(); i++) {
+            Field f1 = fields.get(i);
+            Field f2 = otherCE.fields.get(i);
+            if (f1 != f2) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

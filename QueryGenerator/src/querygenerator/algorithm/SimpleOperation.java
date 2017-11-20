@@ -28,4 +28,19 @@ public class SimpleOperation extends Operation {
         return ret;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SimpleOperation)) {
+            return false;
+        }
+        SimpleOperation so = (SimpleOperation) obj;
+        if (!this.text.equals(so.text)) {
+            return false;
+        }
+        if (!this.result.equals(so.result)) {
+            return false;
+        }
+        return true;
+    }
+
 }

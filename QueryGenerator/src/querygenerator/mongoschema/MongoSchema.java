@@ -8,8 +8,6 @@ package querygenerator.mongoschema;
 import java.util.ArrayList;
 import java.util.List;
 import querygenerator.ermodel.ERElement;
-import querygenerator.ermodel.Entity;
-import querygenerator.ermodel.Relationship;
 
 /**
  *
@@ -27,14 +25,13 @@ public class MongoSchema {
         return documentTypes;
     }
 
-    
     public void addDocumentType(DocumentType dt) {
         this.documentTypes.add(dt);
     }
-    
+
     public List<String> validate() {
         List<String> violations = new ArrayList<>();
-        for(DocumentType dt: documentTypes) {
+        for (DocumentType dt : documentTypes) {
             dt.validate(violations);
         }
         return violations;
@@ -43,24 +40,36 @@ public class MongoSchema {
     @Override
     public String toString() {
         String ret = "";
-        
-        for(DocumentType dt: documentTypes) {
+
+        for (DocumentType dt : documentTypes) {
             ret += dt.toString();
             ret += "\n";
         }
-        
+
         return ret;
     }
 
     public List<DocumentType> findDocumentTypes(ERElement e1) {
         List<DocumentType> ret = new ArrayList<>();
-        for(DocumentType dt: documentTypes){
-            for(ERMapping erMapping:dt.erMappingList) {
-                if(erMapping.erElement == e1) {
+        for (DocumentType dt : documentTypes) {
+            for (ERMapping erMapping : dt.erMappingList) {
+                if (erMapping.erElement == e1) {
                     ret.add(dt);
                 }
             }
         }
         return ret;
+    }
+
+    public DocumentType findMainDocumentType(ERElement e) {
+        for (DocumentType dt : documentTypes) {
+            for (ERMapping erMapping : dt.erMappingList) {
+                if (erMapping.erElement == e
+                        && erMapping.main) {
+                    return dt;
+                }
+            }
+        }
+        return null;
     }
 }

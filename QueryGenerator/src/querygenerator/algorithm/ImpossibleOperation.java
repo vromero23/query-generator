@@ -20,4 +20,14 @@ public class ImpossibleOperation extends Operation {
         return "(impossible) " + text;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof ImpossibleOperation)) {
+            return false;
+        }
+        ImpossibleOperation io = (ImpossibleOperation)obj;
+        return this.text.equals(io.text);
+    }
+
+    
 }

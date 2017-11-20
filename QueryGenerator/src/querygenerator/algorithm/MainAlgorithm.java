@@ -7,10 +7,10 @@ package querygenerator.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
+import querygenerator.ermodel.Attribute;
 import querygenerator.ermodel.ERElement;
 import querygenerator.ermodel.Entity;
 import querygenerator.ermodel.Relationship;
-import querygenerator.ermodel.RelationshipEnd;
 import querygenerator.mapping.MappingModel;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.Field;
@@ -28,7 +28,7 @@ public class MainAlgorithm {
         this.mappingModel = mappingModel;
     }
 
-    public List<Query> binaryJoin(Entity e1, Relationship r, Entity e2) {
+    public List<Query> binaryJoin(Entity e1, Relationship r, Entity e2, List<Attribute> queryAttributes) {
         List<Query> ret = new ArrayList<>();
 
         if (!(e1 == r.getRelationshipEnds().get(0).getEntity()
@@ -41,6 +41,8 @@ public class MainAlgorithm {
                     + " " + r.getName());
         }
 
+        // TODO: verificar se os atributos de "queryAttributes" 
+        // realmente pertencem a e1, r ou e2
         List<DocumentType> docTypesE1 = mappingModel.getMongoSchema().findDocumentTypes(e1);
         List<DocumentType> docTypesR = mappingModel.getMongoSchema().findDocumentTypes(r);
         List<DocumentType> docTypesE2 = mappingModel.getMongoSchema().findDocumentTypes(e2);
@@ -48,23 +50,39 @@ public class MainAlgorithm {
         for (DocumentType dt1 : docTypesE1) {
             for (DocumentType dtr : docTypesR) {
                 for (DocumentType dt2 : docTypesE2) {
+                    List<ERElement> erElements = new ArrayList<ERElement>();
+                    erElements.add(e1);
+                    erElements.add(r);
+                    erElements.add(e2);
+
+                    List<DocumentType> documentTypes = new ArrayList<DocumentType>();
+                    documentTypes.add(dt1);
+                    documentTypes.add(dtr);
+                    documentTypes.add(dt2);
 
                     ComputedEntity ce = ComputedEntity.createNew(
                             dt1.findERMapping(e1).isMain(),
                             e1.getName()
                             + "-" + r.getName()
-                            + "-" + e2.getName()
-                            + "(" + dt1.getName() + "," + dtr.getName() + "," + dt2.getName() + ")");
+                            + "-" + e2.getName(),
+                            erElements,
+                            documentTypes
+                    );
                     Query q = new Query();
                     q.addOperation(new SimpleOperation("Start", ce));
 
                     findDocTypeOperation(q, dt1);
-                    aggregateFieldsOperations(q, e1, dt1);
+                    completeAttributesOperations(q, e1, queryAttributes);
 
-                    joinOperations(q, e1, r, q.getCopyOfLastComputedEntity(), dtr);
-                    joinOperations(q, e1, e2, q.getCopyOfLastComputedEntity(), dt2);
+                    joinTwoEntitiesOperation(q, e1, r, q.getCopyOfLastComputedEntity(), dtr);
+                    completeAttributesOperations(q, r, queryAttributes);
 
-                    ret.add(q);
+                    joinTwoEntitiesOperation(q, e1, e2, q.getCopyOfLastComputedEntity(), dt2);
+                    completeAttributesOperations(q, e2, queryAttributes);
+
+                    if (!ret.contains(q)) {
+                        ret.add(q);
+                    }
                 }
             }
         }
@@ -72,45 +90,23 @@ public class MainAlgorithm {
     }
 
     private void findDocTypeOperation(Query q, DocumentType dt) {
-        q.addOperation(new SimpleOperation("find(" + dt.getName() + ")", q.getCopyOfLastComputedEntity()));
-    }
-
-    private void aggregateFieldsOperations(Query q, ERElement e, DocumentType dt) {
         ComputedEntity ceResult = q.getCopyOfLastComputedEntity();
-        if(ceResult == null) return;
-        String ret = "project(";
+        if (ceResult == null) {
+            return;
+        }
         for (Field f : dt.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null
-                        && sf.getFieldMapping().getAttribute().getParent() == e
                         && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
-                    ret += sf.getParent().getName() + "." + sf.getName() + ":1,";
                     ceResult.addField(sf);
                 }
             }
         }
-        ret += ")";
-        q.addOperation(new SimpleOperation(ret, ceResult));
-
-        if (e instanceof Relationship) {
-            Relationship rE2 = (Relationship) e;
-            for (RelationshipEnd end : rE2.getRelationshipEnds()) {
-                aggregateFieldsOperations(q, end.getEntity(), dt);
-            }
-        } else if(e instanceof Entity) {
-            Entity entE2 = (Entity)e;
-            List<Relationship> allRelationships = mappingModel.getERModel().findAllRelationships(entE2);
-            for(Relationship r: allRelationships) {
-                if(r != e) {
-                    aggregateFieldsOperations(q, r, dt);
-                }
-            }
-        }
-
+        q.addOperation(new SimpleOperation("find(" + dt.getName() + ")", ceResult));
     }
 
-    private void joinOperations(Query q, ERElement e1, ERElement e2, ComputedEntity ce, DocumentType dt2) {
+    private void joinTwoEntitiesOperation(Query q, ERElement e1, ERElement e2, ComputedEntity ce, DocumentType dt2) {
         if (ce == null) {
             q.addOperation(new ImpossibleOperation("impossível pois não há entidade computada válida!"));
         } else {
@@ -130,7 +126,7 @@ public class MainAlgorithm {
                         + ceResult.getName()
                         + " e "
                         + dt2.getName()
-                        + ", pois não há atributos comuns entre os document types"));
+                        + ", pois não há atributos id comuns entre os document types"));
             } else if (!dt2.findERMapping(e2).isMain()) {
                 q.addOperation(new ImpossibleOperation("impossível join entre "
                         + e1.getName()
@@ -148,6 +144,15 @@ public class MainAlgorithm {
             } else {
                 if (pairOfFields.getFirst().getParent()
                         != pairOfFields.getSecond().getParent()) {
+                    for (Field f : dt2.getFields()) {
+                        if (f instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) f;
+                            if (sf.getFieldMapping() != null
+                                    && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                ceResult.addField(sf);
+                            }
+                        }
+                    }
                     q.addOperation(new SimpleOperation(
                             "join("
                             + pairOfFields.getFirst().getParent().getName()
@@ -159,10 +164,8 @@ public class MainAlgorithm {
                             + pairOfFields.getSecond().getName()
                             + ")", ceResult));
                 }
-                aggregateFieldsOperations(q, e2, dt2);
             }
         }
-//        }
     }
 
     private Pair<SimpleField, SimpleField> findCommonIdFields(
@@ -226,24 +229,117 @@ public class MainAlgorithm {
 
         return ret;
     }
+
+    private Pair<SimpleField, SimpleField> findCommonIdFields(
+            ERElement er,
+            ComputedEntity ce,
+            DocumentType dt2) {
+
+        if (ce == null) {
+            return null;
+        }
+
+        Pair<SimpleField, SimpleField> ret = null;
+
+        List<SimpleField> mappedIdFields1 = new ArrayList<>();
+        List<SimpleField> mappedIdFields2 = new ArrayList<>();
+
+        for (Field f : ce.getFields()) {
+            if (f instanceof SimpleField) {
+                SimpleField sf = (SimpleField) f;
+                if (sf.getFieldMapping() != null) {
+                    if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                        if (sf.getFieldMapping().getAttribute().getParent() == er) {
+                            mappedIdFields1.add(sf);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Field f : dt2.getFields()) {
+            if (f instanceof SimpleField) {
+                SimpleField sf = (SimpleField) f;
+                if (sf.getFieldMapping() != null) {
+                    if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                        if (sf.getFieldMapping().getAttribute().getParent() == er) {
+                            mappedIdFields2.add(sf);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (SimpleField sf1 : mappedIdFields1) {
+            for (SimpleField sf2 : mappedIdFields2) {
+                if (sf1.getFieldMapping().getAttribute()
+                        == sf2.getFieldMapping().getAttribute()) {
+                    if (ret != null) {
+                        System.out.println("Existem dois pares de campos identificadores"
+                                + " para o elemento " + ce.getName() + " "
+                                + "nos DocumentTypes " + ce.getName() + " e " + dt2.getName()
+                                + " (" + sf1.getName() + ", " + sf2.getName() + ")");
+                    } else {
+                        ret = new Pair(sf1, sf2);
+                    }
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    private void completeAttributesOperations(Query q, ERElement er, List<Attribute> queryAttributes) {
+        ComputedEntity ceResult = q.getCopyOfLastComputedEntity();
+        if (ceResult == null) {
+            return;
+        }
+        for (Attribute a : queryAttributes) {
+            if (a.getParent() == er) {
+                if (!ceResult.containsMappedField(a)) {
+                    DocumentType dt = mappingModel.getMongoSchema().findMainDocumentType(er);
+                    if (dt == null) {
+                        q.addOperation(new ImpossibleOperation("Não pode recuperar "
+                                + a.getParent().getName() + "." + a.getName()
+                                + ", pois não existe um DocumentType (main=true)"
+                                + " mapeado a " + er.getName()));
+                    } else {
+                        Pair<SimpleField, SimpleField> pairOfFields = findCommonIdFields(er, ceResult, dt);
+                        if (pairOfFields == null) {
+                            q.addOperation(new ImpossibleOperation("impossível join entre "
+                                    + er.getName()
+                                    + " via "
+                                    + ceResult.getName()
+                                    + " e "
+                                    + dt.getName()
+                                    + ", pois não há atributos id comuns entre os document types"));
+                        } else {
+                            if (pairOfFields.getFirst().getParent()
+                                    != pairOfFields.getSecond().getParent()) {
+                                for (Field f : dt.getFields()) {
+                                    if (f instanceof SimpleField) {
+                                        SimpleField sf = (SimpleField) f;
+                                        if (sf.getFieldMapping() != null
+                                                && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                            ceResult.addField(sf);
+                                        }
+                                    }
+                                }
+                                q.addOperation(new SimpleOperation(
+                                        "join("
+                                        + pairOfFields.getFirst().getParent().getName()
+                                        + "."
+                                        + pairOfFields.getFirst().getName()
+                                        + ", "
+                                        + pairOfFields.getSecond().getParent().getName()
+                                        + "."
+                                        + pairOfFields.getSecond().getName()
+                                        + ")", ceResult));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-//
-//findDocTypeOperation( DocumentType )
-//{
-//    // retorna uma operação simples, do tipo "find"
-//}
-//
-//aggregateFieldsOperation( Entity, DocumentType )
-//{
-//    // juntar todos os campos de Entity que estão presentes em DocumentType
-//    // se faltar algum, não tem problema, tentaremos buscar posteriormente
-//}
-//
-//findCommonIdField( DT1, DT2, ER1, ER2 )
-//{
-//    // encontrar um par de campos para fazer o join
-//    // sendo que deve ser um campo mapeado a um
-//    // atributo do tipo ID da entidade/relacionamento ER1
-//    // ou atributo do tipo ID da entidade/relacionamento ER2
-//} 
-//}

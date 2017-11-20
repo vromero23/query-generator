@@ -107,12 +107,11 @@ public class ModelSample1a {
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "_id", "int", null));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+//        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+//        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
-        docTypeRegistration.addField(new EmbeddedField(docTypeRegistration, "fGarage", new DocumentType("DocTypeGarage")));
+//        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+//        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
         mongoSchema.addDocumentType(docTypeRegistration);
         
         List<String> violations = mongoSchema.validate();

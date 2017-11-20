@@ -50,4 +50,25 @@ public class Query {
         return ret;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if(!(o instanceof Query)) {
+            return false;
+        }
+        Query otherQ = (Query)o;
+        if(this.operations.size() != otherQ.operations.size()) {
+            return false;
+        }
+        for(int i=0;i<operations.size();i++) {
+            Operation o1 = operations.get(i);
+            Operation o2 = otherQ.operations.get(i);
+            if(!o1.equals(o2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    
+
 }

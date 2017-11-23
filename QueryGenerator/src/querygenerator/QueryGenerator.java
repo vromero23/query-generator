@@ -24,29 +24,36 @@ public class QueryGenerator {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample2b.getModel();
+        MappingModel mm = ModelSampleFunDep1.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
 
-        Entity person = (Entity) mm.getERModel().findERElement("Person");
-        Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
-        Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");
+        Entity funcionario = (Entity) mm.getERModel().findERElement("Funcionario");
+        Relationship gerencia = (Relationship) mm.getERModel().findERElement("Gerencia");
+        Entity departamento = (Entity) mm.getERModel().findERElement("Departamento");
 
         List<Attribute> queryAttributes = new ArrayList<>();
-        queryAttributes.add(person.getAttribute("id"));
-        queryAttributes.add(person.getAttribute("name"));
-        queryAttributes.add(person.getAttribute("address"));
-        queryAttributes.add(registration.getAttribute("observation"));
-        queryAttributes.add(driversLicense.getAttribute("id"));
-        queryAttributes.add(driversLicense.getAttribute("number"));
-        queryAttributes.add(driversLicense.getAttribute("date"));
+        //queryAttributes.add(funcionario.getAttribute("id"));
+        //queryAttributes.add(funcionario.getAttribute("cpf"));
+        queryAttributes.add(funcionario.getAttribute("nome_funcionario"));
+       // queryAttributes.add(funcionario.getAttribute("sexo"));
+        queryAttributes.add(gerencia.getAttribute("data_inicio"));
+        //queryAttributes.add(departamento.getAttribute("id"));
+        queryAttributes.add(departamento.getAttribute("numero_dep"));
+        queryAttributes.add(departamento.getAttribute("nome_departamento"));
+        
+ 
 
-        List<Query> queries = ma.binaryJoin(person, registration, driversLicense, queryAttributes);
+        List<Query> queries = ma.binaryJoin(funcionario, gerencia, departamento, queryAttributes);
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
         }
+        for (Query q : queries) {
+            System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
+        }
+        
 
     }
 

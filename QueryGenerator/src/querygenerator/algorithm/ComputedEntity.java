@@ -24,11 +24,13 @@ public class ComputedEntity {
     List<ERElement> erElements;
     List<DocumentType> documentTypes;
     List<Field> fields;
+    List<Field> newFields;
 
     private ComputedEntity(boolean main, String name, List<ERElement> erElements, List<DocumentType> documentTypes) {
         this.main = main;
         this.name = name;
         fields = new ArrayList<>();
+        newFields = new ArrayList<>();
         this.erElements = erElements;
         this.documentTypes = documentTypes;
     }
@@ -68,8 +70,19 @@ public class ComputedEntity {
         return fields;
     }
 
-    public void addField(Field f) {
+    public List<Field> getNewFields() {
+        return newFields;
+    }
+    
+    
+
+    private void addField(Field f) {
         this.fields.add(f);
+    }
+    
+    public void addNewField(Field f) {
+        this.addField(f);
+        this.newFields.add(f);
     }
 
     public boolean containsMappedField(Attribute attribute) {

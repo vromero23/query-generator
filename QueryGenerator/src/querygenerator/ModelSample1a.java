@@ -20,10 +20,7 @@ import querygenerator.mongoschema.FieldMapping;
 import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
 
-/**
- *
- * @author daniellucredio
- */
+
 public class ModelSample1a {
 
     public static MappingModel getModel() {

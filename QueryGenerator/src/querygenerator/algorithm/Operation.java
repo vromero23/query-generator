@@ -27,5 +27,19 @@ public abstract class Operation {
         return result;
     }
     
+    public abstract String generateOperation(); 
+    
+    @Override
+    public String toString() {
+        String ret = "";
+        ret += text + "\n";
+        ret += "Entidade Computada: ";
+        if (result != null) {
+            ret += result.toString() + "\n";
+        } else {
+            ret += "null\n";
+        }
+        return ret;
+    }
     
 }

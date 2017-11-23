@@ -69,6 +69,14 @@ public class Query {
         return true;
     }
     
+    public String generateQuery ()
+    {
+        String ret = "";
+        for (Operation op: operations){
+            ret += op.generateOperation() + "\n";
+        }
+        return ret;
+    }
     
 
 }

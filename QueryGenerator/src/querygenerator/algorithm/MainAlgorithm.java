@@ -27,6 +27,8 @@ public class MainAlgorithm {
     public MainAlgorithm(MappingModel mappingModel) {
         this.mappingModel = mappingModel;
     }
+    
+  
 
     public List<Query> binaryJoin(Entity e1, Relationship r, Entity e2, List<Attribute> queryAttributes) {
         List<Query> ret = new ArrayList<>();
@@ -43,6 +45,8 @@ public class MainAlgorithm {
 
         // TODO: verificar se os atributos de "queryAttributes" 
         // realmente pertencem a e1, r ou e2
+        
+        //aqui verificamos a que documentos estão mapeados as entidades e o relacionamento?? certo!
         List<DocumentType> docTypesE1 = mappingModel.getMongoSchema().findDocumentTypes(e1);
         List<DocumentType> docTypesR = mappingModel.getMongoSchema().findDocumentTypes(r);
         List<DocumentType> docTypesE2 = mappingModel.getMongoSchema().findDocumentTypes(e2);
@@ -69,7 +73,7 @@ public class MainAlgorithm {
                             documentTypes
                     );
                     Query q = new Query();
-                    q.addOperation(new SimpleOperation("Start", ce));
+                    q.addOperation(new StartOperation("Start, primeira EC não vai ter atributos!!", ce));
 
                     findDocTypeOperation(q, dt1);
                     completeAttributesOperations(q, e1, queryAttributes);
@@ -93,17 +97,18 @@ public class MainAlgorithm {
         ComputedEntity ceResult = q.getCopyOfLastComputedEntity();
         if (ceResult == null) {
             return;
+  
         }
         for (Field f : dt.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null
                         && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
-                    ceResult.addField(sf);
+                    ceResult.addNewField(sf);
                 }
             }
         }
-        q.addOperation(new SimpleOperation("find(" + dt.getName() + ")", ceResult));
+        q.addOperation(new FindOperation(dt, "find(" + dt.getName() + ")", ceResult));
     }
 
     private void joinTwoEntitiesOperation(Query q, ERElement e1, ERElement e2, ComputedEntity ce, DocumentType dt2) {
@@ -142,6 +147,7 @@ public class MainAlgorithm {
                         + dt2.getName()
                         + " não é principal"));
             } else {
+                //verificar se os pares de campos de junção tem o mesmo pai
                 if (pairOfFields.getFirst().getParent()
                         != pairOfFields.getSecond().getParent()) {
                     for (Field f : dt2.getFields()) {
@@ -149,11 +155,11 @@ public class MainAlgorithm {
                             SimpleField sf = (SimpleField) f;
                             if (sf.getFieldMapping() != null
                                     && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
-                                ceResult.addField(sf);
+                                ceResult.addNewField(sf);
                             }
                         }
                     }
-                    q.addOperation(new SimpleOperation(
+                    q.addOperation(new JoinOperation(pairOfFields,
                             "join("
                             + pairOfFields.getFirst().getParent().getName()
                             + "."
@@ -189,7 +195,7 @@ public class MainAlgorithm {
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er1
-                                || sf.getFieldMapping().getAttribute().getParent() == er2) {
+                                || sf.getFieldMapping().getAttribute().getParent() == er2) {         
                             mappedIdFields1.add(sf);
                         }
                     }
@@ -203,8 +209,8 @@ public class MainAlgorithm {
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er1
-                                || sf.getFieldMapping().getAttribute().getParent() == er2) {
-                            mappedIdFields2.add(sf);
+                                || sf.getFieldMapping().getAttribute().getParent() == er2) {                          
+                            mappedIdFields2.add(sf);                        
                         }
                     }
                 }
@@ -321,11 +327,11 @@ public class MainAlgorithm {
                                         SimpleField sf = (SimpleField) f;
                                         if (sf.getFieldMapping() != null
                                                 && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
-                                            ceResult.addField(sf);
+                                            ceResult.addNewField(sf);
                                         }
                                     }
                                 }
-                                q.addOperation(new SimpleOperation(
+                                q.addOperation(new JoinOperation(pairOfFields, 
                                         "join("
                                         + pairOfFields.getFirst().getParent().getName()
                                         + "."

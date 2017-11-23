@@ -29,5 +29,10 @@ public class ImpossibleOperation extends Operation {
         return this.text.equals(io.text);
     }
 
+    @Override
+    public String generateOperation() {
+        return  toString();
+    }
+
     
 }

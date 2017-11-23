@@ -15,7 +15,6 @@ import querygenerator.ermodel.RelationshipEnd;
 import querygenerator.mapping.MappingModel;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.ERMapping;
-import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.FieldMapping;
 import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;

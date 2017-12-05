@@ -51,8 +51,8 @@ public class ModelSampleFunDep2 {
         docTypeFuncionario.addERMapping(new ERMapping(funcionario, true));
         docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "_id", "int", new FieldMapping(funcionario.getAttribute("id"))));
         docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fCpf", "string", new FieldMapping(funcionario.getAttribute("cpf"))));
-        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "FNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
-        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "FSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
+        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
+        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
         mongoSchema.addDocumentType(docTypeFuncionario);
         
         DocumentType docTypeDepartamento = new DocumentType("DocTypeDepartamento");
@@ -62,7 +62,7 @@ public class ModelSampleFunDep2 {
         docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fNome_departamento", "string", new FieldMapping(departamento.getAttribute("nome_departamento"))));
         mongoSchema.addDocumentType(docTypeDepartamento);
 
-        DocumentType docTypeGerencia  = new DocumentType("DocTypeGerencia ");
+        DocumentType docTypeGerencia  = new DocumentType("DocTypeGerencia");
         docTypeGerencia.addERMapping(new ERMapping(gerencia, true));
         docTypeGerencia.addERMapping(new ERMapping(funcionario, false));
         docTypeGerencia.addERMapping(new ERMapping(departamento, false));
@@ -70,6 +70,8 @@ public class ModelSampleFunDep2 {
         docTypeGerencia.addField(new SimpleField(docTypeGerencia, "data_inicio", "string", new FieldMapping(gerencia.getAttribute("data_inicio"))));
         docTypeGerencia.addField(new SimpleField(docTypeGerencia, "fFuncionarioId", "int", new FieldMapping(funcionario.getAttribute("id"))));
         docTypeGerencia.addField(new SimpleField(docTypeGerencia, "fDepartamentoId", "int", new FieldMapping(departamento.getAttribute("id"))));
+       //docTypeGerencia.addField(new SimpleField(docTypeGerencia, "fNumero_dep", "string", new FieldMapping(departamento.getAttribute("numero_dep"))));
+        //docTypeGerencia.addField(new SimpleField(docTypeGerencia, "fNome_departamento","string", new FieldMapping(departamento.getAttribute("nome_departamento"))));
         mongoSchema.addDocumentType(docTypeGerencia);
         
         List<String> violations = mongoSchema.validate();

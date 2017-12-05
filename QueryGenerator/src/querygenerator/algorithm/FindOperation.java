@@ -54,7 +54,12 @@ public class FindOperation extends Operation {
             for (SimpleField sf : fields) {
                 ret+= "         " + sf.getName() + ": data." + sf.getName() + ",\n";
             }
-            ret += "      }\n";
+            ret += "      }";
+            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+            if (erElements.size()>1)
+            {
+                ret += ",\n";
+            }
         }
         ret += "   });\n";
         ret += "});";

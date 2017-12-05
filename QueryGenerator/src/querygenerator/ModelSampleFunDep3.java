@@ -53,9 +53,9 @@ public class ModelSampleFunDep3 {
         docTypeFuncionario.addERMapping(new ERMapping(funcionario, true));
         docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "_id", "int", new FieldMapping(funcionario.getAttribute("id"))));
         docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fCpf", "string", new FieldMapping(funcionario.getAttribute("cpf"))));
-        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "FNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
-        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "FSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
-        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "_id", "int", new FieldMapping(departamento.getAttribute("id"))));
+        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
+        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
+        docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "fDepartamentoId", "int", new FieldMapping(departamento.getAttribute("id"))));
         docTypeFuncionario.addField(new SimpleField(docTypeFuncionario, "data_inicio", "string", new FieldMapping(gerencia.getAttribute("data_inicio"))));
         
         mongoSchema.addDocumentType(docTypeFuncionario);

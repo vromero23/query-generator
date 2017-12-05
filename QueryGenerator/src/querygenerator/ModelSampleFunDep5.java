@@ -51,13 +51,13 @@ public class ModelSampleFunDep5 {
         docTypeDepartamento.addERMapping(new ERMapping(departamento, true));
         docTypeDepartamento.addERMapping(new ERMapping(funcionario, true));
         docTypeDepartamento.addERMapping(new ERMapping(gerencia, true));
-        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "_iddep", "int", new FieldMapping(departamento.getAttribute("id"))));
+        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "_id", "int", new FieldMapping(departamento.getAttribute("id"))));
         docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fNumero_dep", "string", new FieldMapping(departamento.getAttribute("numero_dep"))));
         docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fNome_departamento", "string", new FieldMapping(departamento.getAttribute("nome_departamento"))));
-        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "_idfuncionario", "int", new FieldMapping(funcionario.getAttribute("id"))));
+        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fFuncionarioId", "int", new FieldMapping(funcionario.getAttribute("id"))));
         docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fCpf", "string", new FieldMapping(funcionario.getAttribute("cpf"))));
-        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "FNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
-        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "FSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
+        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fNome_funcionario", "string", new FieldMapping(funcionario.getAttribute("nome_funcionario"))));
+        docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "fSexo", "string", new FieldMapping(funcionario.getAttribute("sexo"))));
         docTypeDepartamento.addField(new SimpleField(docTypeDepartamento, "data_inicio", "string", new FieldMapping(gerencia.getAttribute("data_inicio"))));
 
         mongoSchema.addDocumentType(docTypeDepartamento);

@@ -13,6 +13,7 @@ import querygenerator.ermodel.Entity;
 import querygenerator.ermodel.Relationship;
 import querygenerator.mapping.MappingModel;
 import querygenerator.mongoschema.DocumentType;
+import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
 
@@ -106,6 +107,9 @@ public class MainAlgorithm {
                         && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
                     ceResult.addNewField(sf);
                 }
+            } else if(f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField)f;
+                ceResult.addNewField(ef);
             }
         }
         q.addOperation(new FindOperation(dt, "find(" + dt.getName() + ")", ceResult));
@@ -116,6 +120,10 @@ public class MainAlgorithm {
             q.addOperation(new ImpossibleOperation("impossível pois não há entidade computada válida!"));
         } else {
             if (ce.containsMappedERElement(e2)) {
+                return;
+            }
+            
+            if(ce.containsMappedERElementAsEmbeddedField(e2)) {
                 return;
             }
 

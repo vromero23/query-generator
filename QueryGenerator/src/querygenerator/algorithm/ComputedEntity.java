@@ -10,6 +10,7 @@ import java.util.List;
 import querygenerator.ermodel.Attribute;
 import querygenerator.ermodel.ERElement;
 import querygenerator.mongoschema.DocumentType;
+import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
 
@@ -73,13 +74,11 @@ public class ComputedEntity {
     public List<Field> getNewFields() {
         return newFields;
     }
-    
-    
 
     private void addField(Field f) {
         this.fields.add(f);
     }
-    
+
     public void addNewField(Field f) {
         this.addField(f);
         this.newFields.add(f);
@@ -93,6 +92,19 @@ public class ComputedEntity {
                         && sf.getFieldMapping().getAttribute() == attribute) {
                     return true;
 
+                }
+            } else if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
+                DocumentType subDocType = ef.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null
+                                && sf.getFieldMapping().getAttribute() == attribute) {
+                            return true;
+
+                        }
+                    }
                 }
             }
         }
@@ -113,14 +125,27 @@ public class ComputedEntity {
         return false;
     }
 
+    boolean containsMappedERElementAsEmbeddedField(ERElement e2) {
+        for (Field f : fields) {
+            if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
+                DocumentType subDocType = ef.getSubDocType();
+                if (subDocType.findERMapping(e2) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         String ret = "";
         ret += "(main=" + main + ") ";
         ret += name + " [ ";
-        for(int i=0;i<documentTypes.size();i++) {
+        for (int i = 0; i < documentTypes.size(); i++) {
             ret += documentTypes.get(i).getName();
-            if(i < documentTypes.size()-1) {
+            if (i < documentTypes.size() - 1) {
                 ret += ", ";
             }
         }

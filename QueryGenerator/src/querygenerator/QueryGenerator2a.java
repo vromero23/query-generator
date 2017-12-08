@@ -18,34 +18,30 @@ import querygenerator.mapping.MappingModel;
  *
  * @author daniellucredio
  */
-public class QueryGenerator {
+public class QueryGenerator2a {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSampleFunDep6.getModel();
+        MappingModel mm = ModelSample2a.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
 
-        Entity funcionario = (Entity) mm.getERModel().findERElement("Funcionario");
-        Relationship gerencia = (Relationship) mm.getERModel().findERElement("Gerencia");
-        Entity departamento = (Entity) mm.getERModel().findERElement("Departamento");
+        Entity person = (Entity) mm.getERModel().findERElement("Person");
+        Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
+        Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");
 
         List<Attribute> queryAttributes = new ArrayList<>();
-        //queryAttributes.add(funcionario.getAttribute("id"));
-        //queryAttributes.add(funcionario.getAttribute("cpf"));
-        queryAttributes.add(funcionario.getAttribute("nome_funcionario"));
-       // queryAttributes.add(funcionario.getAttribute("sexo"));
-        queryAttributes.add(gerencia.getAttribute("data_inicio"));
-        //queryAttributes.add(departamento.getAttribute("id"));
-        queryAttributes.add(departamento.getAttribute("numero_dep"));
-        queryAttributes.add(departamento.getAttribute("nome_departamento"));
+        queryAttributes.add(person.getAttribute("name"));
+        queryAttributes.add(registration.getAttribute("observation"));
+        queryAttributes.add(driversLicense.getAttribute("number"));
+
         
  
 
-        List<Query> queries = ma.binaryJoin(funcionario, gerencia, departamento, queryAttributes);
+        List<Query> queries = ma.binaryJoin(person, registration, driversLicense, queryAttributes);
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");

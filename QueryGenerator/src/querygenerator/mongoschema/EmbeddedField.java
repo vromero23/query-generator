@@ -20,4 +20,10 @@ public class EmbeddedField extends Field {
         super(parent, name);
         this.subDocType = subDocType;
     }
+    
+    @Override
+    public String toString() {
+        String ret = name + " : " + subDocType.toString();
+        return ret;
+    }    
 }

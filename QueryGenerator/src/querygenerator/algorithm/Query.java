@@ -50,6 +50,7 @@ public class Query {
         return ret;
     }
 
+    // TODO: Modificar equals para comparar as operações adequadamente
     @Override
     public boolean equals(Object o) {
         if(!(o instanceof Query)) {

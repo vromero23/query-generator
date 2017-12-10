@@ -5,12 +5,23 @@
  */
 package querygenerator.mongoschema;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import querygenerator.algorithm.ComputedEntity;
+import querygenerator.algorithm.Pair;
+import querygenerator.ermodel.ERElement;
+
 /**
  *
  * @author daniellucredio
  */
 public class EmbeddedField extends Field {
     DocumentType subDocType;
+
+    public String getName() {
+        return name;
+    }
 
     public DocumentType getSubDocType() {
         return subDocType;
@@ -23,7 +34,7 @@ public class EmbeddedField extends Field {
     
     @Override
     public String toString() {
-        String ret = name + " : " + subDocType.toString();
+        String ret = name;
         return ret;
     }    
 }

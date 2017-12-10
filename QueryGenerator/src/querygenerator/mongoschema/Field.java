@@ -5,12 +5,18 @@
  */
 package querygenerator.mongoschema;
 
+import java.util.List;
+import querygenerator.algorithm.ComputedEntity;
+import querygenerator.algorithm.Pair;
+import querygenerator.ermodel.ERElement;
+
 /**
  *
  * @author daniellucredio
  */
 public abstract class Field {
-
+    
+    
     String name;
     DocumentType parent;
 
@@ -23,7 +29,12 @@ public abstract class Field {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public DocumentType getParent() {
         return parent;
     }
+    
 }

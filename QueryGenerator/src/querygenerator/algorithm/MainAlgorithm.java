@@ -6,7 +6,11 @@
 package querygenerator.algorithm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import querygenerator.ermodel.Attribute;
 import querygenerator.ermodel.ERElement;
 import querygenerator.ermodel.Entity;
@@ -129,7 +133,7 @@ public class MainAlgorithm {
 
             ComputedEntity ceResult = ComputedEntity.createCopy(ce);
 
-            Pair<SimpleField, SimpleField> pairOfFields = findCommonIdFields(e1, e2, ceResult, dt2);
+            Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> pairOfFields = findCommonIdFields(e1, e2, ceResult, dt2);
             if (pairOfFields == null) {
                 q.addOperation(new ImpossibleOperation("impossível join entre "
                         + e1.getName()
@@ -156,8 +160,9 @@ public class MainAlgorithm {
                         + " não é principal"));
             } else {
                 //verificar se os pares de campos de junção tem o mesmo pai
-                if (pairOfFields.getFirst().getParent()
-                        != pairOfFields.getSecond().getParent()) {
+                //vão ter mesmo pai só se não tem documentos embutidos
+                //if (pairOfFields.getFirst().getParent()
+                 //       != pairOfFields.getSecond().getParent()) {
                     for (Field f : dt2.getFields()) {
                         if (f instanceof SimpleField) {
                             SimpleField sf = (SimpleField) f;
@@ -166,8 +171,21 @@ public class MainAlgorithm {
                                 ceResult.addNewField(sf);
                             }
                         }
+                        if (f instanceof EmbeddedField) {
+                            EmbeddedField ef = (EmbeddedField) f;
+                            DocumentType subDocType = ef.getSubDocType();
+                            for (Field subField : subDocType.getFields()) {
+                                if (subField instanceof SimpleField) {
+                                    SimpleField sf = (SimpleField) subField;
+                                    if (sf.getFieldMapping() != null
+                                            && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                        ceResult.addNewField(sf);
+                                    }
+                                }
+                            }
+                        }
                     }
-                    q.addOperation(new JoinOperation(pairOfFields,
+                   /* q.addOperation(new JoinOperation(pairOfFields,
                             "join("
                             + pairOfFields.getFirst().getParent().getName()
                             + "."
@@ -176,13 +194,14 @@ public class MainAlgorithm {
                             + pairOfFields.getSecond().getParent().getName()
                             + "."
                             + pairOfFields.getSecond().getName()
-                            + ")", ceResult));
-                }
+                            + ")", ceResult));*/
+                    q.addOperation(new JoinOperation(pairOfFields,"join lalalaa1", ceResult));
+                //}
             }
         }
     }
 
-    private Pair<SimpleField, SimpleField> findCommonIdFields(
+    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> findCommonIdFields(
             ERElement er1,
             ERElement er2,
             ComputedEntity ce,
@@ -192,59 +211,94 @@ public class MainAlgorithm {
             return null;
         }
 
-        Pair<SimpleField, SimpleField> ret = null;
-
-        List<SimpleField> mappedIdFields1 = new ArrayList<>();
-        List<SimpleField> mappedIdFields2 = new ArrayList<>();
-
+        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> ret = null;
+        
+        List<Pair<Field,DocumentType>> mappedIdFields1 = new ArrayList<>();
+        List<Pair<Field,DocumentType>> mappedIdFields2 = new ArrayList<>();
+        
+        
         for (Field f : ce.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er1
-                                || sf.getFieldMapping().getAttribute().getParent() == er2) {         
-                            mappedIdFields1.add(sf);
+                                || sf.getFieldMapping().getAttribute().getParent() == er2) {
+                            mappedIdFields1.add(new Pair<>(sf, sf.getParent()));
+                        }
+                    }
+                }
+            }
+            if (f instanceof EmbeddedField) {
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null) {
+                            if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                                if (sf.getFieldMapping().getAttribute().getParent() == er1
+                                        || sf.getFieldMapping().getAttribute().getParent() == er2) {
+                                    sf.setName(emf.getName() + "." + sf.getName());
+                                    mappedIdFields1.add(new Pair<>(sf, emf.getParent()));
+                                    
+                                }
+                                /*for (int i = 0; i < mappedIdFields1.size(); i++) {
+                                    String nameAttribute = mappedIdFields1.get(i).getFirst().getName().toString();
+                                    String nameAttributeParent = subDocType.getName() + "." + nameAttribute;
+                                    mappedIdFields1.get(i).getFirst().setName(nameAttributeParent);
+                                }*/
+                            }
                         }
                     }
                 }
             }
         }
-
+        
         for (Field f : dt2.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er1
-                                || sf.getFieldMapping().getAttribute().getParent() == er2) {                          
-                            mappedIdFields2.add(sf);                        
+                                || sf.getFieldMapping().getAttribute().getParent() == er2) {
+                            mappedIdFields2.add(new Pair<>(sf, sf.getParent()));
+                        }
+                    }
+                }
+            }
+            if (f instanceof EmbeddedField) {
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null) {
+                            if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                                if (sf.getFieldMapping().getAttribute().getParent() == er1
+                                        || sf.getFieldMapping().getAttribute().getParent() == er2) {
+                                    sf.setName(emf.getName() + "." + sf.getName());
+                                    mappedIdFields2.add(new Pair<>(sf, emf.getParent()));
+                                }
+                                /*for (int i = 0; i < mappedIdFields2.size(); i++) {
+                                    String nameAttribute = mappedIdFields2.get(i).getFirst().getName().toString();
+                                    String nameAttributeParent = subDocType.getName() + "." + nameAttribute;
+                                    mappedIdFields2.get(i).getFirst().setName(nameAttributeParent);
+                                }*/
+                            }
                         }
                     }
                 }
             }
         }
+        
+        
 
-        for (SimpleField sf1 : mappedIdFields1) {
-            for (SimpleField sf2 : mappedIdFields2) {
-                if (sf1.getFieldMapping().getAttribute()
-                        == sf2.getFieldMapping().getAttribute()) {
-                    if (ret != null) {
-                        System.out.println("Existem dois pares de campos identificadores"
-                                + " para os elementos " + ce.getName() + " e " + er2.getName() + " "
-                                + "nos DocumentTypes " + ce.getName() + " e " + dt2.getName()
-                                + " (" + sf1.getName() + ", " + sf2.getName() + ")");
-                    } else {
-                        ret = new Pair(sf1, sf2);
-                    }
-                }
-            }
-        }
-
+        ret = new Pair(mappedIdFields1,mappedIdFields2);
         return ret;
     }
 
-    private Pair<SimpleField, SimpleField> findCommonIdFields(
+    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> findCommonIdFields(
             ERElement er,
             ComputedEntity ce,
             DocumentType dt2) {
@@ -253,54 +307,84 @@ public class MainAlgorithm {
             return null;
         }
 
-        Pair<SimpleField, SimpleField> ret = null;
-
-        List<SimpleField> mappedIdFields1 = new ArrayList<>();
-        List<SimpleField> mappedIdFields2 = new ArrayList<>();
-
+        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> ret = null;
+        
+        List<Pair<Field, DocumentType>> mappedIdFields1 = new ArrayList<>();
+        List<Pair<Field,DocumentType>> mappedIdFields2 = new ArrayList<>();
+        
         for (Field f : ce.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er) {
-                            mappedIdFields1.add(sf);
+                            mappedIdFields1.add(new Pair<>(sf, sf.getParent()));
+                        }
+                    }
+                }
+            }
+            if (f instanceof EmbeddedField) {
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null) {
+                            if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                                if (sf.getFieldMapping().getAttribute().getParent() == er) {
+                                    sf.setName(emf.getName() + "." + sf.getName());
+                                    mappedIdFields1.add(new Pair<>(sf, emf.getParent()));
+                                }
+                                /*for (int i = 0; i < mappedIdFields1.size(); i++) {
+                                    String nameAttribute = mappedIdFields1.get(i).getFirst().getName().toString();
+                                    String nameAttributeParent = subDocType.getName() + "." + nameAttribute;
+                                    mappedIdFields1.get(i).getFirst().setName(nameAttributeParent);
+                                }*/
+                            }
                         }
                     }
                 }
             }
         }
-
+        
         for (Field f : dt2.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
                 if (sf.getFieldMapping() != null) {
                     if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                         if (sf.getFieldMapping().getAttribute().getParent() == er) {
-                            mappedIdFields2.add(sf);
+                            mappedIdFields2.add(new Pair<>(sf, sf.getParent()));
                         }
                     }
                 }
             }
-        }
-
-        for (SimpleField sf1 : mappedIdFields1) {
-            for (SimpleField sf2 : mappedIdFields2) {
-                if (sf1.getFieldMapping().getAttribute()
-                        == sf2.getFieldMapping().getAttribute()) {
-                    if (ret != null) {
-                        System.out.println("Existem dois pares de campos identificadores"
-                                + " para o elemento " + ce.getName() + " "
-                                + "nos DocumentTypes " + ce.getName() + " e " + dt2.getName()
-                                + " (" + sf1.getName() + ", " + sf2.getName() + ")");
-                    } else {
-                        ret = new Pair(sf1, sf2);
+            if (f instanceof EmbeddedField) {
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null) {
+                            if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                                if (sf.getFieldMapping().getAttribute().getParent() == er) {
+                                    sf.setName(emf.getName() + "." + sf.getName());
+                                    mappedIdFields2.add(new Pair<>(sf, emf.getParent()));
+                                }
+                                /*for (int i = 0; i < mappedIdFields1.size(); i++) {
+                                    String nameAttribute = mappedIdFields2.get(i).getFirst().getName().toString();
+                                    String nameAttributeParent = subDocType.getName() + "." + nameAttribute;
+                                    mappedIdFields2.get(i).getFirst().setName(nameAttributeParent);
+                                }*/
+                            }
+                        }
                     }
                 }
             }
-        }
+        }      
 
+        ret = new Pair(mappedIdFields1,mappedIdFields2);
         return ret;
+       
     }
 
     private void completeAttributesOperations(Query q, ERElement er, List<Attribute> queryAttributes) {
@@ -318,7 +402,7 @@ public class MainAlgorithm {
                                 + ", pois não existe um DocumentType (main=true)"
                                 + " mapeado a " + er.getName()));
                     } else {
-                        Pair<SimpleField, SimpleField> pairOfFields = findCommonIdFields(er, ceResult, dt);
+                        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> pairOfFields = findCommonIdFields(er, ceResult, dt);
                         if (pairOfFields == null) {
                             q.addOperation(new ImpossibleOperation("impossível join entre "
                                     + er.getName()
@@ -328,8 +412,8 @@ public class MainAlgorithm {
                                     + dt.getName()
                                     + ", pois não há atributos id comuns entre os document types"));
                         } else {
-                            if (pairOfFields.getFirst().getParent()
-                                    != pairOfFields.getSecond().getParent()) {
+                            //if (pairOfFields.getFirst().getParent()
+                              //      != pairOfFields.getSecond().getParent()) {
                                 for (Field f : dt.getFields()) {
                                     if (f instanceof SimpleField) {
                                         SimpleField sf = (SimpleField) f;
@@ -338,8 +422,21 @@ public class MainAlgorithm {
                                             ceResult.addNewField(sf);
                                         }
                                     }
+                                    if (f instanceof EmbeddedField) {
+                                        EmbeddedField ef = (EmbeddedField) f;
+                                        DocumentType subDocType = ef.getSubDocType();
+                                        for (Field subField : subDocType.getFields()) {
+                                            if (subField instanceof SimpleField) {
+                                                SimpleField sf = (SimpleField) subField;
+                                                if (sf.getFieldMapping() != null
+                                                        && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                                    ceResult.addNewField(sf);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                q.addOperation(new JoinOperation(pairOfFields, 
+                              /* q.addOperation(new JoinOperation(pairOfFields, 
                                         "join("
                                         + pairOfFields.getFirst().getParent().getName()
                                         + "."
@@ -348,8 +445,9 @@ public class MainAlgorithm {
                                         + pairOfFields.getSecond().getParent().getName()
                                         + "."
                                         + pairOfFields.getSecond().getName()
-                                        + ")", ceResult));
-                            }
+                                        + ")", ceResult));*/
+                                q.addOperation(new JoinOperation(pairOfFields,"join lalalaa2", ceResult));
+                            //}
                         }
                     }
                 }

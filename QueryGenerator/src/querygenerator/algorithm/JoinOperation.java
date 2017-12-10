@@ -5,6 +5,12 @@
  */
 package querygenerator.algorithm;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
@@ -15,20 +21,57 @@ import querygenerator.mongoschema.SimpleField;
  */
 public class JoinOperation extends Operation {
 
-    private Pair<SimpleField, SimpleField> fields;
+    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields;
 
-    public JoinOperation(Pair<SimpleField, SimpleField> fields, String text, ComputedEntity result) {
+    
+    public JoinOperation(Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields, String text, ComputedEntity result) {
         super(text, result);
         this.fields = fields;
     }
-
+    
     @Override
     public String generateOperation() {
-        String lf = "data_" + fields.getFirst().getFieldMapping().getAttribute().getParent().getName()
-                + "." + fields.getFirst().getName();
-        String lfp = fields.getFirst().getParent().getName();
-        String rf = fields.getSecond().getName();
-        String rfp = fields.getSecond().getParent().getName();
+        
+
+    String lf = " ";
+    String lfp = " ";
+    String rf = " ";    
+    String rfp = " ";
+    
+    for (Pair<Field, DocumentType> p : fields.getFirst()) {
+
+        if (p.getFirst() instanceof SimpleField) {
+            lf = "data_" + p.getSecond().getName() + "." + p.getFirst().getName();
+            lfp =  p.getSecond().getName();
+            
+
+        } else {
+            lf = "data_" + p.getSecond().getName() + "." + p.getFirst().getName();
+            lfp =  p.getSecond().getName();
+        }
+    }
+    for (Pair<Field, DocumentType> p : fields.getSecond()) {
+
+
+        if (p.getFirst() instanceof SimpleField) {
+            rf =  p.getFirst().getName();
+            rfp = p.getSecond().getName();
+
+        } else {
+            rf =  p.getFirst().getName();
+            rfp = p.getSecond().getName(); 
+        }
+    }    
+    
+
+   
+            
+              
+        //String lf = "data_A";/// + fields.getFirst().getFieldMapping().getAttribute().getParent().getName()
+                //+ "." + fields.getFirst().getName();
+        //String lfp = fields.getFirst().getParent().getName();
+        //String rf = fields.getSecond().getName();
+        //String rfp = fields.getSecond().getParent().getName();
 
         String ret = "db.EC.find().forEach( function(data){\n"
                 + "   var varData = db." + rfp + ".findOne("

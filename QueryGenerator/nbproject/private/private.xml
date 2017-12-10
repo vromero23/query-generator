@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/QueryGenerator/src/querygenerator/ModelSample1a.java</file>
-            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/QueryGenerator/src/querygenerator/QueryGenerator.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/mongoschema/SimpleField.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/mongoschema/EmbeddedField.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/mongoschema/Field.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/ModelSample1b.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/QueryGenerator.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/algorithm/MainAlgorithm.java</file>
         </group>
     </open-files>
 </project-private>

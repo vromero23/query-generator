@@ -5,6 +5,12 @@
  */
 package querygenerator.mongoschema;
 
+import java.util.ArrayList;
+import java.util.List;
+import querygenerator.algorithm.ComputedEntity;
+import querygenerator.algorithm.Pair;
+import querygenerator.ermodel.ERElement;
+
 /**
  *
  * @author daniellucredio
@@ -13,6 +19,10 @@ public class SimpleField extends Field {
 
     String type;
     FieldMapping fieldMapping;
+
+    public DocumentType getParent() {
+        return parent;
+    }
 
     public SimpleField(DocumentType parent, String name, String type, FieldMapping fieldMapping) {
         super(parent, name);

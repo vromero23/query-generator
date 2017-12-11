@@ -33,8 +33,13 @@ public class EmbeddedField extends Field {
     }
     
     @Override
-    public String toString() {
-        String ret = name;
+   public String toString() {
+        String ret = name + " : " + " { \n";
+        for (Field f : subDocType.fields){
+            ret += "   " + f.toString();
+            ret += "\n";
+        }
+        ret += " }";
         return ret;
-    }    
+    }
 }

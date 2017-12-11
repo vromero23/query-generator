@@ -45,8 +45,8 @@ public class QueryGenerator2a {
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
-        }
-        for (Query q : queries) {
+        //}
+       // for (Query q : queries) {
             System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
         }
         

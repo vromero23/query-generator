@@ -110,6 +110,33 @@ public class ComputedEntity {
         }
         return false;
     }
+    
+    public boolean containsMappedNewField(Attribute attribute) {
+        for (Field f : newFields) {
+            if (f instanceof SimpleField) {
+                SimpleField sf = (SimpleField) f;
+                if (sf.getFieldMapping() != null
+                        && sf.getFieldMapping().getAttribute() == attribute) {
+                    return true;
+
+                }
+            } else if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
+                DocumentType subDocType = ef.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null
+                                && sf.getFieldMapping().getAttribute() == attribute) {
+                            return true;
+
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     boolean containsMappedERElement(ERElement erElement) {
         for (Field f : fields) {

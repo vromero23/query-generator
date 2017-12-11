@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import querygenerator.mongoschema.DocumentType;
+import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
 
@@ -27,11 +28,11 @@ public class JoinOperation extends Operation {
     public JoinOperation(Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields, String text, ComputedEntity result) {
         super(text, result);
         this.fields = fields;
+
     }
     
     @Override
     public String generateOperation() {
-        
 
     String lf = " ";
     String lfp = " ";
@@ -39,34 +40,33 @@ public class JoinOperation extends Operation {
     String rfp = " ";
     
     for (Pair<Field, DocumentType> p : fields.getFirst()) {
-
-        if (p.getFirst() instanceof SimpleField) {
-            lf = "data_" + p.getSecond().getName() + "." + p.getFirst().getName();
+        Field fFirst = p.getFirst();
+        if (fFirst instanceof SimpleField) {
+            SimpleField f = (SimpleField) fFirst;
+            lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "."+ fFirst.getName();
             lfp =  p.getSecond().getName();
             
 
         } else {
-            lf = "data_" + p.getSecond().getName() + "." + p.getFirst().getName();
+            EmbeddedField f = (EmbeddedField) fFirst;
+            lf = "data_" + f.getSubDocType().getName() + "."+ fFirst.getName();
             lfp =  p.getSecond().getName();
         }
     }
     for (Pair<Field, DocumentType> p : fields.getSecond()) {
-
-
+        Field fFirst = p.getFirst();
         if (p.getFirst() instanceof SimpleField) {
-            rf =  p.getFirst().getName();
+            SimpleField f = (SimpleField) fFirst;
+            rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
             rfp = p.getSecond().getName();
 
         } else {
-            rf =  p.getFirst().getName();
+            EmbeddedField f = (EmbeddedField) fFirst;
+            rf = "data_" + f.getSubDocType().getName() + fFirst.getName();
             rfp = p.getSecond().getName(); 
         }
     }    
-    
-
-   
-            
-              
+          
         //String lf = "data_A";/// + fields.getFirst().getFieldMapping().getAttribute().getParent().getName()
                 //+ "." + fields.getFirst().getName();
         //String lfp = fields.getFirst().getParent().getName();

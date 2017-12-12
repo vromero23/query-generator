@@ -24,7 +24,7 @@ public class JoinOperation extends Operation {
 
     private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields;
 
-    
+    //Em Field dentro do fields, sempre vai ser um campo simples, vamos verificar se é embutido verificando o pai
     public JoinOperation(Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields, String text, ComputedEntity result) {
         super(text, result);
         this.fields = fields;
@@ -43,24 +43,28 @@ public class JoinOperation extends Operation {
         Field fFirst = p.getFirst();
         if (fFirst instanceof SimpleField) {
             SimpleField f = (SimpleField) fFirst;
-            lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "."+ fFirst.getName();
-            lfp =  p.getSecond().getName();
-            
-
+            lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
+            lfp = p.getSecond().getName();
         } else {
             EmbeddedField f = (EmbeddedField) fFirst;
-            lf = "data_" + f.getSubDocType().getName() + "."+ fFirst.getName();
-            lfp =  p.getSecond().getName();
+            lf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
+            lfp = p.getSecond().getName();
         }
     }
     for (Pair<Field, DocumentType> p : fields.getSecond()) {
         Field fFirst = p.getFirst();
         if (p.getFirst() instanceof SimpleField) {
             SimpleField f = (SimpleField) fFirst;
-           // rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
-            rf = fFirst.getName();
-            rfp = p.getSecond().getName();
-
+            DocumentType dt = p.getSecond();
+            //verificar pai, pra saber se é embutido ou nao, se não tem mesmo pai, é porque tem dados embutidos
+            if(f.getParent().getName()!=dt.getName())
+            {
+                rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
+                rfp = p.getSecond().getName();
+            } else {
+                rf = fFirst.getName();
+                rfp = p.getSecond().getName();                
+            }
         } else {
             EmbeddedField f = (EmbeddedField) fFirst;
             rf = "data_" + f.getSubDocType().getName() + fFirst.getName();
@@ -68,12 +72,6 @@ public class JoinOperation extends Operation {
         }
     }    
           
-        //String lf = "data_A";/// + fields.getFirst().getFieldMapping().getAttribute().getParent().getName()
-                //+ "." + fields.getFirst().getName();
-        //String lfp = fields.getFirst().getParent().getName();
-        //String rf = fields.getSecond().getName();
-        //String rfp = fields.getSecond().getParent().getName();
-
         String ret = "db.EC.find().forEach( function(data){\n"
                 + "   var varData = db." + rfp + ".findOne("
                 + "{ '" + rf + "': data." + lf + " });\n"

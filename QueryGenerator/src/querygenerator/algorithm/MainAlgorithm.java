@@ -82,13 +82,9 @@ public class MainAlgorithm {
 
                     findDocTypeOperation(q, dt1);
                     completeAttributesOperations(q, e1, queryAttributes);
-                    
-                    System.out.print("PRIMER JOIN\n");
-
+                   
                     joinTwoEntitiesOperation(q, e1, r, q.getCopyOfLastComputedEntity(), dtr);
                     completeAttributesOperations(q, r, queryAttributes);
-                    
-                    System.out.print("SEGUNDO JOIN\n");
 
                     joinTwoEntitiesOperation(q, e1, e2, q.getCopyOfLastComputedEntity(), dt2);
                     completeAttributesOperations(q, e2, queryAttributes);
@@ -117,7 +113,17 @@ public class MainAlgorithm {
                 }
             } else if(f instanceof EmbeddedField) {
                 EmbeddedField ef = (EmbeddedField)f;
-                ceResult.addNewField(ef);
+                DocumentType subDocType = ef.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null
+                                && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
+                            ceResult.addNewField(sf);
+                        }
+                    }
+                }
+                //ceResult.addNewField(ef);
             }
         }
         q.addOperation(new FindOperation(dt, "find(" + dt.getName() + ")", ceResult));
@@ -164,11 +170,12 @@ public class MainAlgorithm {
             } else {
                 //verificar se os pares de campos de junção tem o mesmo pai
                 //vão ter mesmo pai só se não tem documentos embutidos
+                //VERIFICAR OS PAIS DOS DOC EMBUTIDOS, SENAO ELE ADICIONA DE NOVO NO NewField
                 for (Pair<Field, DocumentType> pf : pairOfFields.getFirst()) {
                     Field fFirst = pf.getFirst();
                     for (Pair<Field, DocumentType> ps : pairOfFields.getSecond()) {
                         Field fSecond = ps.getFirst();
-                        if (fFirst.getParent() != fSecond.getParent()) {
+                        if (fFirst.getParent().getName() != fSecond.getParent().getName()) {
                             for (Field f : dt2.getFields()) {
                                 if (f instanceof SimpleField) {
                                     SimpleField sf = (SimpleField) f;
@@ -178,14 +185,30 @@ public class MainAlgorithm {
                                     }
                                 }else if (f instanceof EmbeddedField) {
                                     EmbeddedField ef = (EmbeddedField) f;
-                                    ceResult.addNewField(ef);
+                                    DocumentType subDocType = ef.getSubDocType();
+                                    for (Field subField : subDocType.getFields()) {
+                                        if (subField instanceof SimpleField) {
+                                            SimpleField sf = (SimpleField) subField;
+                                            if (sf.getFieldMapping() != null
+                                                    && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
+                                                ceResult.addNewField(sf);
+                                            }
+                                        }
+                                    }
+                                    //ceResult.addNewField(ef);
                                 }
                             }
                         }
                     }
                 }
                 q.addOperation(new JoinOperation(pairOfFields,
-                        "join 1", ceResult));
+                        "join entre "  + e1.getName()
+                        + " e "
+                        + e2.getName()
+                        + " via "
+                        + ceResult.getName()
+                        + " e "
+                        + dt2.getName(), ceResult));
             }
         }
 }
@@ -410,7 +433,12 @@ public class MainAlgorithm {
                                     }
                                 }
                             }
-                          q.addOperation(new JoinOperation(pairOfFields, "join lalalaa2", ceResult));
+                          q.addOperation(new JoinOperation(pairOfFields, "join entre "
+                                    + er.getName()
+                                    + " via "
+                                    + ceResult.getName()
+                                    + " e "
+                                    + dt.getName(), ceResult));
                         }
                     }
                 }

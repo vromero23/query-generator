@@ -15,12 +15,13 @@ import querygenerator.ermodel.RelationshipEnd;
 import querygenerator.mapping.MappingModel;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.ERMapping;
+import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.FieldMapping;
 import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
 
 
-public class ModelSample1a {
+public class ModelSample1c {
 
     public static MappingModel getModel() {
         ERModel erModel = new ERModel();
@@ -37,48 +38,12 @@ public class ModelSample1a {
         driversLicense.addAttribute(new Attribute(driversLicense, "date", "date", false));
         erModel.addERElement(driversLicense);
 
-        Entity car = new Entity("Car");
-        car.addAttribute(new Attribute(car, "id", "int", true));
-        car.addAttribute(new Attribute(car, "plate", "string", false));
-        car.addAttribute(new Attribute(car, "color", "string", false));
-        erModel.addERElement(car);
-
-        Entity garage = new Entity("Garage");
-        garage.addAttribute(new Attribute(garage, "id", "int", true));
-        garage.addAttribute(new Attribute(garage, "name", "string", false));
-        garage.addAttribute(new Attribute(garage, "address", "string", false));
-        erModel.addERElement(garage);
-
-        Entity insuranceCompany = new Entity("InsuranceCompany");
-        insuranceCompany.addAttribute(new Attribute(insuranceCompany, "id", "int", true));
-        insuranceCompany.addAttribute(new Attribute(insuranceCompany, "name", "string", false));
-        insuranceCompany.addAttribute(new Attribute(insuranceCompany, "phone", "string", false));
-        erModel.addERElement(insuranceCompany);
-
         Relationship registration = new Relationship("Registration");
         registration.addRelationshipEnd(new RelationshipEnd(person, Cardinality.One));
         registration.addRelationshipEnd(new RelationshipEnd(driversLicense, Cardinality.One));
         registration.addAttribute(new Attribute(registration, "observation", "string",false));
         erModel.addERElement(registration);
 
-        Relationship drives = new Relationship("Drives");
-        drives.addRelationshipEnd(new RelationshipEnd(person, Cardinality.One));
-        drives.addRelationshipEnd(new RelationshipEnd(car, Cardinality.Many));
-        erModel.addERElement(drives);
-
-        Relationship contract = new Relationship("Contract");
-        contract.addRelationshipEnd(new RelationshipEnd(person, Cardinality.Many));
-        contract.addRelationshipEnd(new RelationshipEnd(car, Cardinality.Many));
-        contract.addRelationshipEnd(new RelationshipEnd(insuranceCompany, Cardinality.Many));
-        contract.addAttribute(new Attribute(contract, "id", "int", true));
-        erModel.addERElement(contract);
-
-        Relationship repairs = new Relationship("Repairs");
-        repairs.addRelationshipEnd(new RelationshipEnd(car, Cardinality.Many));
-        repairs.addRelationshipEnd(new RelationshipEnd(garage, Cardinality.Many));
-        repairs.addAttribute(new Attribute(repairs, "date", "date", false));
-        repairs.addAttribute(new Attribute(repairs, "fix", "string", false));
-        erModel.addERElement(repairs);
 
         MongoSchema mongoSchema = new MongoSchema();
 
@@ -98,16 +63,22 @@ public class ModelSample1a {
 
         DocumentType docTypeRegistration = new DocumentType("DocTypeRegistration");
         docTypeRegistration.addERMapping(new ERMapping(registration, true));
-        docTypeRegistration.addERMapping(new ERMapping(driversLicense, false));
         docTypeRegistration.addERMapping(new ERMapping(person, false));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "_id", "int", null));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
+        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+
+        DocumentType docTypeDriversLicense2 = new DocumentType("DocTypeDriversLicense2");
+        docTypeDriversLicense2.addERMapping(new ERMapping(driversLicense, true));
+        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
+        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
+         
+        docTypeRegistration.addField(new EmbeddedField(docTypeRegistration, "data_DriversLicense", docTypeDriversLicense2));
+        
+        
         mongoSchema.addDocumentType(docTypeRegistration);
         
         List<String> violations = mongoSchema.validate();

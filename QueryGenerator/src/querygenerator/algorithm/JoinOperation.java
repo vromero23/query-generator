@@ -57,7 +57,8 @@ public class JoinOperation extends Operation {
         Field fFirst = p.getFirst();
         if (p.getFirst() instanceof SimpleField) {
             SimpleField f = (SimpleField) fFirst;
-            rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
+           // rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
+            rf = fFirst.getName();
             rfp = p.getSecond().getName();
 
         } else {
@@ -85,8 +86,18 @@ public class JoinOperation extends Operation {
                 String erName = sf.getFieldMapping().getAttribute().getParent().getName();
                 ret += "                    'data_" + erName + "." + sf.getName() + "': varData." + sf.getName() + ",\n";
             }
-
-        }
+            if (f instanceof EmbeddedField){
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        ret += "                    '" + emf.getName() + "." + sf.getName() + "': varData." +  emf.getName() + "." + sf.getName() + ",\n";
+                    }
+                }
+            }
+        
+        }        
         ret += "                          }\n"
                 + "                  }\n"
                 + "                )\n"

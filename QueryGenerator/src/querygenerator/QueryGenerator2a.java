@@ -24,7 +24,7 @@ public class QueryGenerator2a {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample1d.getModel();
+        MappingModel mm = ModelSample3g.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);

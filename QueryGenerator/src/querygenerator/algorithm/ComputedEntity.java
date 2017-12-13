@@ -137,6 +137,18 @@ public class ComputedEntity {
         }
         return false;
     }
+    
+   public boolean containsMappedEmbeddedField(EmbeddedField embField){
+        for (Field f : newFields) {
+            if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
+                if (ef.getName()==embField.getName()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     boolean containsMappedERElement(ERElement erElement) {
         for (Field f : fields) {

@@ -20,7 +20,7 @@ import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
 
 
-public class ModelSample1a {
+public class ModelSample2h {
 
     public static MappingModel getModel() {
         ERModel erModel = new ERModel();
@@ -84,30 +84,29 @@ public class ModelSample1a {
 
         DocumentType docTypePerson = new DocumentType("DocTypePerson");
         docTypePerson.addERMapping(new ERMapping(person, true));
+        docTypePerson.addERMapping(new ERMapping(registration, false));
         docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         mongoSchema.addDocumentType(docTypePerson);
 
         DocumentType docTypeDriversLicense = new DocumentType("DocTypeDriversLicense");
         docTypeDriversLicense.addERMapping(new ERMapping(driversLicense, true));
+        docTypeDriversLicense.addERMapping(new ERMapping(person, false));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "_id", "int", new FieldMapping(driversLicense.getAttribute("id"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
+        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));        
+        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
+        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+
         mongoSchema.addDocumentType(docTypeDriversLicense);
 
         DocumentType docTypeRegistration = new DocumentType("DocTypeRegistration");
         docTypeRegistration.addERMapping(new ERMapping(registration, true));
-        docTypeRegistration.addERMapping(new ERMapping(driversLicense, false));
-        docTypeRegistration.addERMapping(new ERMapping(person, false));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "_id", "int", null));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
         mongoSchema.addDocumentType(docTypeRegistration);
         
         List<String> violations = mongoSchema.validate();

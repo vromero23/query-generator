@@ -32,8 +32,6 @@ public class MainAlgorithm {
     public MainAlgorithm(MappingModel mappingModel) {
         this.mappingModel = mappingModel;
     }
-    
-  
 
     public List<Query> binaryJoin(Entity e1, Relationship r, Entity e2, List<Attribute> queryAttributes) {
         List<Query> ret = new ArrayList<>();
@@ -51,7 +49,6 @@ public class MainAlgorithm {
 
         // TODO: verificar se os atributos de "queryAttributes" 
         // realmente pertencem a e1, r ou e2
-        
         //aqui verificamos a que documentos estão mapeados as entidades e o relacionamento?? certo!
         List<DocumentType> docTypesE1 = mappingModel.getMongoSchema().findDocumentTypes(e1);
         List<DocumentType> docTypesR = mappingModel.getMongoSchema().findDocumentTypes(r);
@@ -83,7 +80,7 @@ public class MainAlgorithm {
 
                     findDocTypeOperation(q, dt1);
                     completeAttributesOperations(q, e1, queryAttributes);
-                   
+
                     joinTwoEntitiesOperation(q, e1, r, q.getCopyOfLastComputedEntity(), dtr);
                     completeAttributesOperations(q, r, queryAttributes);
 
@@ -103,7 +100,7 @@ public class MainAlgorithm {
         ComputedEntity ceResult = q.getCopyOfLastComputedEntity();
         if (ceResult == null) {
             return;
-  
+
         }
         for (Field f : dt.getFields()) {
             if (f instanceof SimpleField) {
@@ -112,8 +109,8 @@ public class MainAlgorithm {
                         && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
                     ceResult.addNewField(sf);
                 }
-            } else if(f instanceof EmbeddedField) {
-                EmbeddedField ef = (EmbeddedField)f;
+            } else if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
                 /*DocumentType subDocType = ef.getSubDocType();
                 for (Field subField : subDocType.getFields()) {
                     if (subField instanceof SimpleField) {
@@ -124,7 +121,7 @@ public class MainAlgorithm {
                         }
                     }
                 }*/
-                ceResult.addNewField(ef);
+                ceResult.addNewField(ef); //acho que a primeira vez tem de inserir o campo embebido completamente
             }
         }
         q.addOperation(new FindOperation(dt, "find(" + dt.getName() + ")", ceResult));
@@ -144,7 +141,7 @@ public class MainAlgorithm {
 
             ComputedEntity ceResult = ComputedEntity.createCopy(ce);
             Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> pairOfFields = findCommonIdFields(e1, e2, ceResult, dt2);
-            if (pairOfFields.getFirst().size() == 0 || pairOfFields.getSecond().size()== 0) {
+            if (pairOfFields.getFirst().size() == 0 || pairOfFields.getSecond().size() == 0) {
                 q.addOperation(new ImpossibleOperation("impossível join entre "
                         + e1.getName()
                         + " e "
@@ -172,51 +169,46 @@ public class MainAlgorithm {
                 //verificar se os pares de campos de junção tem o mesmo pai
                 //vão ter mesmo pai só se não tem documentos embutidos
                 //VERIFICAR OS PAIS DOS DOC EMBUTIDOS, SENAO ELE ADICIONA DE NOVO NO NewField
+                Field fFirst = null;
+                Field fSecond = null;
                 for (Pair<Field, DocumentType> pf : pairOfFields.getFirst()) {
-                    Field fFirst = pf.getFirst();
+                    fFirst = pf.getFirst();
                     for (Pair<Field, DocumentType> ps : pairOfFields.getSecond()) {
-                        Field fSecond = ps.getFirst();
+                        fSecond = ps.getFirst();
                         //if (fFirst.getParent().getName() != fSecond.getParent().getName()) {
-                            for (Field f : dt2.getFields()) {
-                                if (f instanceof SimpleField) {
-                                    SimpleField sf = (SimpleField) f;
-                                    if (sf.getFieldMapping() != null
-                                            && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
-                                        ceResult.addNewField(sf);
-                                    }
-                                }else if (f instanceof EmbeddedField) {
-                                    EmbeddedField ef = (EmbeddedField) f;
-                                    /*DocumentType subDocType = ef.getSubDocType();
-                                    for (Field subField : subDocType.getFields()) {
-                                        if (subField instanceof SimpleField) {
-                                            SimpleField sf = (SimpleField) subField;
-                                            if (sf.getFieldMapping() != null
-                                                    && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
-                                                ceResult.addNewField(sf);
-                                            }
-                                        }
-                                    }*/
-                                   //inserimos sempre o campo embebido no ceResult? precisamos inserirlo como campo
-                                   //embebido porque precisamos endereco certo para gerar consulta en mongo
+                        for (Field f : dt2.getFields()) {
+                            if (f instanceof SimpleField) {
+                                SimpleField sf = (SimpleField) f;
+                                if (sf.getFieldMapping() != null
+                                        && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
+                                    ceResult.addNewField(sf);
+                                }
+                            } else if (f instanceof EmbeddedField) {
+                                EmbeddedField ef = (EmbeddedField) f;
+                                //verificamos se campo embutido ja existe no ceResult,se não existe inserimos.
+                                if (!ceResult.containsMappedEmbeddedField(ef)) {
                                     ceResult.addNewField(ef);
                                 }
-                            //}
+                            }
                         }
                     }
                 }
-                q.addOperation(new JoinOperation(pairOfFields,
-                        "joinTwoEntitiesOperation join entre "  + e1.getName()
-                        + " e "
-                        + e2.getName()
-                        + " via "
-                        + ceResult.getName()
-                        + " e "
-                        + dt2.getName(), ceResult));
+                //pra realizar a junção os dois Field tem de ter mesmo pai, ou seja ambos ids tem de estar mapeados pra mesma Entidade
+                if (fFirst.getParent() == fSecond.getParent()) {
+                    q.addOperation(new JoinOperation(pairOfFields,
+                            "joinTwoEntitiesOperation join entre " + e1.getName()
+                            + " e "
+                            + e2.getName()
+                            + " via "
+                            + ceResult.getName()
+                            + " e "
+                            + dt2.getName(), ceResult));
+                }
             }
         }
-}
+    }
 
-    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> findCommonIdFields(
+    private Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> findCommonIdFields(
             ERElement er1,
             ERElement er2,
             ComputedEntity ce,
@@ -225,20 +217,19 @@ public class MainAlgorithm {
         if (ce == null) {
             return null;
         }
-        
+
         /*
         mappedIdFields1/2: contem List<Pair<Field,DocumentType>> , onde Field sempre vai ser SimpleField e
         DocumentType indicará que ele é o pai de Field.
         Para saber que o Field é um EmbeddedField, precisaremos verificar mais pra frente se o pai do SimpleField
         é igual a DocumentType. Se não é igual, é porque é um campo embutido
         
-        */
-        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> ret = null;
-        
-        List<Pair<Field,DocumentType>> mappedIdFields1 = new ArrayList<>();
-        List<Pair<Field,DocumentType>> mappedIdFields2 = new ArrayList<>();
-         
-        
+         */
+        Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> ret = null;
+
+        List<Pair<Field, DocumentType>> mappedIdFields1 = new ArrayList<>();
+        List<Pair<Field, DocumentType>> mappedIdFields2 = new ArrayList<>();
+
         for (Field f : ce.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
@@ -260,7 +251,7 @@ public class MainAlgorithm {
                         if (sf.getFieldMapping() != null) {
                             if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                                 if (sf.getFieldMapping().getAttribute().getParent() == er1
-                                        || sf.getFieldMapping().getAttribute().getParent() == er2) {    
+                                        || sf.getFieldMapping().getAttribute().getParent() == er2) {
                                     //sf.setName(emf.getName() + "." + sf.getName());
                                     mappedIdFields1.add(new Pair<>(sf, emf.getParent()));
                                 }
@@ -270,7 +261,7 @@ public class MainAlgorithm {
                 }
             }
         }
-        
+
         for (Field f : dt2.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
@@ -302,14 +293,12 @@ public class MainAlgorithm {
                 }
             }
         }
-        
-        
 
-        ret = new Pair(mappedIdFields1,mappedIdFields2);
+        ret = new Pair(mappedIdFields1, mappedIdFields2);
         return ret;
     }
 
-    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> findCommonIdFields(
+    private Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> findCommonIdFields(
             ERElement er,
             ComputedEntity ce,
             DocumentType dt2) {
@@ -318,11 +307,11 @@ public class MainAlgorithm {
             return null;
         }
 
-        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> ret = null;
-        
+        Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> ret = null;
+
         List<Pair<Field, DocumentType>> mappedIdFields1 = new ArrayList<>();
-        List<Pair<Field,DocumentType>> mappedIdFields2 = new ArrayList<>();
-        
+        List<Pair<Field, DocumentType>> mappedIdFields2 = new ArrayList<>();
+
         for (Field f : ce.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
@@ -352,7 +341,7 @@ public class MainAlgorithm {
                 }
             }
         }
-        
+
         for (Field f : dt2.getFields()) {
             if (f instanceof SimpleField) {
                 SimpleField sf = (SimpleField) f;
@@ -373,7 +362,7 @@ public class MainAlgorithm {
                         if (sf.getFieldMapping() != null) {
                             if (sf.getFieldMapping().getAttribute().isIdentifier()) {
                                 if (sf.getFieldMapping().getAttribute().getParent() == er) {
-                                   // sf.setName(emf.getName() + "." + sf.getName());
+                                    // sf.setName(emf.getName() + "." + sf.getName());
                                     mappedIdFields2.add(new Pair<>(sf, emf.getParent()));
                                 }
                             }
@@ -381,11 +370,11 @@ public class MainAlgorithm {
                     }
                 }
             }
-        }      
+        }
 
-        ret = new Pair(mappedIdFields1,mappedIdFields2);
+        ret = new Pair(mappedIdFields1, mappedIdFields2);
         return ret;
-       
+
     }
 
     private void completeAttributesOperations(Query q, ERElement er, List<Attribute> queryAttributes) {
@@ -403,8 +392,8 @@ public class MainAlgorithm {
                                 + ", pois não existe um DocumentType (main=true)"
                                 + " mapeado a " + er.getName()));
                     } else {
-                        Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> pairOfFields = findCommonIdFields(er, ceResult, dt);
-                         if (pairOfFields.getFirst().size() == 0 || pairOfFields.getSecond().size()== 0) {
+                        Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> pairOfFields = findCommonIdFields(er, ceResult, dt);
+                        if (pairOfFields.getFirst().size() == 0 || pairOfFields.getSecond().size() == 0) {
                             q.addOperation(new ImpossibleOperation("impossível join entre "
                                     + er.getName()
                                     + " via "
@@ -413,22 +402,23 @@ public class MainAlgorithm {
                                     + dt.getName()
                                     + ", pois não há atributos id comuns entre os document types"));
                         } else {
+                            Field fFirst = null;
+                            Field fSecond = null;
                             for (Pair<Field, DocumentType> pf : pairOfFields.getFirst()) {
-                                Field fFirst = pf.getFirst();
+                                fFirst = pf.getFirst();
                                 for (Pair<Field, DocumentType> ps : pairOfFields.getSecond()) {
-                                    Field fSecond = ps.getFirst();
-                                    //if (fFirst.getParent() != fSecond.getParent()) {
-                                        for (Field f : dt.getFields()) {
-                                            if (f instanceof SimpleField) {
-                                                SimpleField sf = (SimpleField) f;
-                                                if (sf.getFieldMapping() != null
-                                                        && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
-                                                    ceResult.addNewField(sf);
-                                                }
+                                    fSecond = ps.getFirst();
+                                    for (Field f : dt.getFields()) {
+                                        if (f instanceof SimpleField) {
+                                            SimpleField sf = (SimpleField) f;
+                                            if (sf.getFieldMapping() != null
+                                                    && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                                ceResult.addNewField(sf);
                                             }
-                                            if (f instanceof EmbeddedField) {
-                                                EmbeddedField ef = (EmbeddedField) f;
-                                                DocumentType dtt = ef.getSubDocType();
+                                        }
+                                        if (f instanceof EmbeddedField) {
+                                            EmbeddedField ef = (EmbeddedField) f;
+                                            /*DocumentType dtt = ef.getSubDocType();
                                                 for (Field ff : dtt.getFields()) {
                                                     if (ff instanceof SimpleField) {
                                                         SimpleField sf = (SimpleField) ff;
@@ -437,19 +427,26 @@ public class MainAlgorithm {
                                                             ceResult.addNewField(ef);
                                                         }
                                                     }
-                                                }
-                                                //ceResult.addNewField(ef);
+                                                }*/
+                                            //verificamos se campo embutido ja existe no ceResult,se não existe inserimos.
+                                            if (!ceResult.containsMappedEmbeddedField(ef)) {
+                                                ceResult.addNewField(ef);
                                             }
+                                            //ceResult.addNewField(ef);
                                         }
+                                    }
                                     //}
                                 }
                             }
-                          q.addOperation(new JoinOperation(pairOfFields, "completeAttributesOperations join entre "
-                                    + er.getName()
-                                    + " via "
-                                    + ceResult.getName()
-                                    + " e "
-                                    + dt.getName(), ceResult));
+                            //pra realizar a junção os dois Field tem de ter mesmo pai, ou seja ambos ids tem de estar mapeados pra mesma Entidade
+                            if (fFirst.getParent() == fSecond.getParent()) {
+                                q.addOperation(new JoinOperation(pairOfFields, "completeAttributesOperations join entre "
+                                        + er.getName()
+                                        + " via "
+                                        + ceResult.getName()
+                                        + " e "
+                                        + dt.getName(), ceResult));
+                            }
                         }
                     }
                 }

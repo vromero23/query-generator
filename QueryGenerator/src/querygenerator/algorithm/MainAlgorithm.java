@@ -194,7 +194,9 @@ public class MainAlgorithm {
                     }
                 }
                 //pra realizar a junção os dois Field tem de ter mesmo pai, ou seja ambos ids tem de estar mapeados pra mesma Entidade
-                if (fFirst.getParent() == fSecond.getParent()) {
+               SimpleField fA= (SimpleField) fFirst;
+               SimpleField fB= (SimpleField) fSecond;
+                if (fA.getFieldMapping().getAttribute().getParent() == fB.getFieldMapping().getAttribute().getParent()) {
                     q.addOperation(new JoinOperation(pairOfFields,
                             "joinTwoEntitiesOperation join entre " + e1.getName()
                             + " e "
@@ -439,7 +441,9 @@ public class MainAlgorithm {
                                 }
                             }
                             //pra realizar a junção os dois Field tem de ter mesmo pai, ou seja ambos ids tem de estar mapeados pra mesma Entidade
-                            if (fFirst.getParent() == fSecond.getParent()) {
+                            SimpleField fA = (SimpleField) fFirst;
+                            SimpleField fB = (SimpleField) fSecond;
+                            if (fA.getFieldMapping().getAttribute().getParent() == fB.getFieldMapping().getAttribute().getParent()) {
                                 q.addOperation(new JoinOperation(pairOfFields, "completeAttributesOperations join entre "
                                         + er.getName()
                                         + " via "

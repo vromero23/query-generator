@@ -18,30 +18,27 @@ import querygenerator.mapping.MappingModel;
  *
  * @author daniellucredio
  */
-public class QueryGenerator2a {
+public class QueryGeneratorOneToMany {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample3d.getModel();
+        MappingModel mm = ModelSampleOneToMany.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
 
         Entity person = (Entity) mm.getERModel().findERElement("Person");
-        Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
-        Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");
+        Relationship drives = (Relationship) mm.getERModel().findERElement("Drives");
+        Entity car = (Entity) mm.getERModel().findERElement("Car");
 
         List<Attribute> queryAttributes = new ArrayList<>();
         queryAttributes.add(person.getAttribute("name"));
-        queryAttributes.add(registration.getAttribute("observation"));
-        queryAttributes.add(driversLicense.getAttribute("number"));
+        queryAttributes.add(car.getAttribute("plate"));
+        queryAttributes.add(car.getAttribute("color"));
 
-        
- 
-
-        List<Query> queries = ma.binaryJoin(person, registration, driversLicense, queryAttributes);
+        List<Query> queries = ma.binaryJoin(person, drives, car, queryAttributes);
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");

@@ -66,21 +66,48 @@ public class FindOperation extends Operation {
         }
         String ret = "db." + docType.getName() + ".find().forEach( function(data) {\n"
                 + "   db.EC.insert( {\n";
-        Set<ERElement> erElements = fieldsToProject.keySet();
+        Set<ERElement> erElements = fieldsToProject.keySet();  
+        int nItem = 1;
         for (ERElement ere : erElements) {
-            ret += "      data_" + ere.getName() + ": {\n";
-            List<Pair<String,String>> fields = fieldsToProject.get(ere);
-            for (Pair<String,String> fieldName : fields) {
-                ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+            if (nItem == 1) {
+                ret += "      data_" + ere.getName() + ": {\n";
+                List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                for (Pair<String, String> fieldName : fields) {
+                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                }
+                ret += "      }";
+                /*adicionar campo data_Join*/
+                if(erElements.size() ==1)
+                {
+                   ret += "\n ,data_Join: []";
+                }
+                else
+                {
+                    ret += "\n ,data_Join: [{";
+                }
+            }else{
+                ret += "      data_" + ere.getName() + ": {\n";
+                List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                for (Pair<String, String> fieldName : fields) {
+                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                }
+                ret += "      }";
+                ret += "\n";
+                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                if (erElements.size() > 1) {
+                    ret += ",\n";
+                }
+                if(nItem==erElements.size()){
+                    ret += "}]";
+                }
+              
             }
-            ret += "      }";
-            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-            if (erElements.size() > 1) {
-                ret += ",\n";
-            }
+            
+            nItem++;
         }
         ret += "   });\n";
         ret += "});";
+
         return ret;
     }
 

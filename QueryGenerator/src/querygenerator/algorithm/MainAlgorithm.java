@@ -204,7 +204,7 @@ public class MainAlgorithm {
                             + " via "
                             + ceResult.getName()
                             + " e "
-                            + dt2.getName(), ceResult, q.getCopyOfLastComputedEntity()));
+                            + dt2.getName(), ceResult,1));
                 }
             }
         }
@@ -449,7 +449,7 @@ public class MainAlgorithm {
                                         + " via "
                                         + ceResult.getName()
                                         + " e "
-                                        + dt.getName(), ceResult, q.getCopyOfLastComputedEntity()));
+                                        + dt.getName(), ceResult,2));
                             }
                         }
                     }

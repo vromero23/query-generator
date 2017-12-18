@@ -58,7 +58,7 @@ public class ModelSampleOneToMany {
         docTypeCar.addField(new SimpleField(docTypeCar, "_id", "int", new FieldMapping(car.getAttribute("id"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fplate", "string", new FieldMapping(car.getAttribute("plate"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fcolor", "string", new FieldMapping(car.getAttribute("color"))));
-       mongoSchema.addDocumentType(docTypeCar);
+        mongoSchema.addDocumentType(docTypeCar);
         
         
         DocumentType docTypeDrives = new DocumentType("DocTypeDrives");

@@ -88,7 +88,7 @@ public class ModelSample2h {
         docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
+       // docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         mongoSchema.addDocumentType(docTypePerson);
 
         DocumentType docTypeDriversLicense = new DocumentType("DocTypeDriversLicense");

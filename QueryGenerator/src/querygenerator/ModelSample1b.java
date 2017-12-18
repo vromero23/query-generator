@@ -76,7 +76,7 @@ public class ModelSample1b {
         docTypeRegistration.addField(new EmbeddedField(docTypeRegistration, "data_Person", docTypePerson2));
         
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
         mongoSchema.addDocumentType(docTypeRegistration);
         

@@ -187,20 +187,24 @@ public class JoinOperation extends Operation {
         }
         Set<ERElement> erElements = fieldsToProject.keySet();
         for (ERElement ere : erElements) {
-            ret += "        data_" + ere.getName() + ": {\n";
-            List<Pair<String, String>> fields = fieldsToProject.get(ere);
-            for (Pair<String, String> fieldName : fields) {
-                ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
-            }
-            ret += "      }";
-            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-            if (erElements.size() > 1) {
-                ret += ",\n";
+            //inserimos dados só se são distintos da entidade 1, a entidade 1 ja existe como primeiro atributo
+            //da entidade computada
+            if(ere!=er1){
+                ret += "        data_" + ere.getName() + ": {\n";
+                List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                for (Pair<String, String> fieldName : fields) {
+                    ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                }
+                ret += "      }";
+                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                if (erElements.size() > 1) {
+                    ret += ",\n";
+                }
             }
         }
-        ret += "                          }\n"
-                + "                  )\n"
-                + "                }\n"
+                ret += "}\n"
+                + ")\n"
+                + "}\n"
                 + ");\n"
                 + "db.EC.update( {'" + lf + "': data." + lf + "},\n"
                 + "                 { $set: { \n"

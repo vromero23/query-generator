@@ -61,7 +61,7 @@ public class ModelSample2g {
         DocumentType docTypeDriversLicense = new DocumentType("DocTypeDriversLicense");
         docTypeDriversLicense.addERMapping(new ERMapping(driversLicense, true));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "_id", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        //docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
      
         DocumentType docTypePerson2 = new DocumentType("DocTypePerson2");

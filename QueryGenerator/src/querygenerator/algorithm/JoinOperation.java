@@ -25,72 +25,68 @@ import querygenerator.mongoschema.SimpleField;
  */
 public class JoinOperation extends Operation {
 
-    private Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields;
+    private Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> fields;
     private int valor;
-    public String newFieldWhere = " ";   
-
+    public String newFieldWhere = " ";
 
     //Em Field dentro do fields, sempre vai ser um campo simples, vamos verificar se é embutido verificando o pai
-    public JoinOperation(Pair<List<Pair<Field,DocumentType>>, List<Pair<Field,DocumentType>>> fields, String text, ComputedEntity result, int valor) {
+    public JoinOperation(Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> fields, String text, ComputedEntity result, int valor) {
         super(text, result);
         this.fields = fields;
-        this.valor= valor;
+        this.valor = valor;
     }
-
 
     @Override
     public String generateOperation() {
 
-    String lf = " ";
-    String lfp = " ";
-    String rf = " ";    
-    String rfp = " ";
-    String newlf = " ";
-    
-    int nI= 1;
-    ERElement er1 = null;
-    //Recuperamos Entidade1
-    for(ERElement ere: result.erElements){
-        if(nI==1){
-            er1 = ere;
-        }
-        nI++;
-    }
-    
-    
-    int nItem = 1;
-    String nameAtribute = " ";
-    String nameDocument = " ";
-    String nameEntity = " ";
-    //percorremos documentos do result
-    //achamos aquele que tem mapeado a Entidade1
-    // recuperamos Campo identificador
-    for (DocumentType dt : result.getDocumentTypes()) {
-        if (nItem == 1) {
-            for (Field f : dt.getFields()){
-                if (f instanceof SimpleField) {
-                    SimpleField sf = (SimpleField) f;
-                    if (sf.getFieldMapping() != null) {
-                        if (sf.getFieldMapping().getAttribute().isIdentifier()) {
-                            if (sf.getFieldMapping().getAttribute().getParent() == er1) {
-                                nameEntity = er1.getName();
-                                nameAtribute = sf.getName();
-                            }
+        String lf = " ";
+        String lfp = " ";
+        String rf = " ";
+        String rfp = " ";
+        String newlf = " ";
+
+//        int nI = 1;
+        ERElement er1 = result.erElements.get(0);
+        //Recuperamos Entidade1
+//        for (ERElement ere : result.erElements) {
+//            if (nI == 1) {
+//                er1 = ere;
+//            }
+//            nI++;
+//        }
+
+        int nItem = 1;
+        String nameAtribute = " ";
+        String nameDocument = " ";
+        String nameEntity = " ";
+        //percorremos documentos do result
+        //achamos aquele que tem mapeado a Entidade1
+        // recuperamos Campo identificador
+        DocumentType dtFirst = result.getDocumentTypes().get(0);
+
+        for (Field f : dtFirst.getFields()) {
+            if (f instanceof SimpleField) {
+                SimpleField sf = (SimpleField) f;
+                if (sf.getFieldMapping() != null) {
+                    if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                        if (sf.getFieldMapping().getAttribute().getParent() == er1) {
+                            nameEntity = er1.getName();
+                            nameAtribute = sf.getName();
                         }
                     }
                 }
-                if (f instanceof EmbeddedField) {
-                    EmbeddedField emf = (EmbeddedField) f;
-                    DocumentType subDocType = emf.getSubDocType();
-                    for (Field subField : subDocType.getFields()) {
-                        if (subField instanceof SimpleField) {
-                            SimpleField sf = (SimpleField) subField;
-                            if (sf.getFieldMapping() != null) {
-                                if (sf.getFieldMapping().getAttribute().isIdentifier()) {
-                                    if (sf.getFieldMapping().getAttribute().getParent() == er1) {
-                                        nameEntity = er1.getName();
-                                        nameAtribute = sf.getName();
-                                    }
+            }
+            if (f instanceof EmbeddedField) {
+                EmbeddedField emf = (EmbeddedField) f;
+                DocumentType subDocType = emf.getSubDocType();
+                for (Field subField : subDocType.getFields()) {
+                    if (subField instanceof SimpleField) {
+                        SimpleField sf = (SimpleField) subField;
+                        if (sf.getFieldMapping() != null) {
+                            if (sf.getFieldMapping().getAttribute().isIdentifier()) {
+                                if (sf.getFieldMapping().getAttribute().getParent() == er1) {
+                                    nameEntity = er1.getName();
+                                    nameAtribute = sf.getName();
                                 }
                             }
                         }
@@ -98,174 +94,173 @@ public class JoinOperation extends Operation {
                 }
             }
         }
-        nItem++;
-    }
-    newFieldWhere = nameEntity + "." + nameAtribute;
-    
-    for (Pair<Field, DocumentType> p : fields.getFirst()) {
-        Field fFirst = p.getFirst();
-        if (fFirst instanceof SimpleField) {
-            SimpleField f = (SimpleField) fFirst;
-            lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
-            lfp = p.getSecond().getName();
-            if(valor==2){
-                lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName(); 
-                newlf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
-            }
-        } else {
-            EmbeddedField f = (EmbeddedField) fFirst;
-            lf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
-            lfp = p.getSecond().getName();
-            if(valor==2){
-                lf = "data_" + f.getSubDocType().getName();
-                newlf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
-            } 
-        }
-    }
-    for (Pair<Field, DocumentType> p : fields.getSecond()) {
-        Field fFirst = p.getFirst();
-        if (p.getFirst() instanceof SimpleField) {
-            SimpleField f = (SimpleField) fFirst;
-            DocumentType dt = p.getSecond();
-            //verificar pai, pra saber se é embutido ou nao, se não tem mesmo pai, é porque tem dados embutidos
-            if(f.getParent().getName()!=dt.getName())
-            {
-                rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName()+ "." + fFirst.getName();
-                rfp = p.getSecond().getName();
+        newFieldWhere = nameEntity + "." + nameAtribute;
+
+        for (Pair<Field, DocumentType> p : fields.getFirst()) {
+            Field fFirst = p.getFirst();
+            if (fFirst instanceof SimpleField) {
+                SimpleField f = (SimpleField) fFirst;
+                lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
+                lfp = p.getSecond().getName();
+                if (valor == 2) {
+                    lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName();
+                    newlf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
+                }
             } else {
-                rf = fFirst.getName();
-                rfp = p.getSecond().getName();                
+                EmbeddedField f = (EmbeddedField) fFirst;
+                lf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
+                lfp = p.getSecond().getName();
+                if (valor == 2) {
+                    lf = "data_" + f.getSubDocType().getName();
+                    newlf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
+                }
             }
+        }
+        for (Pair<Field, DocumentType> p : fields.getSecond()) {
+            Field fFirst = p.getFirst();
+            if (p.getFirst() instanceof SimpleField) {
+                SimpleField f = (SimpleField) fFirst;
+                DocumentType dt = p.getSecond();
+                //verificar pai, pra saber se é embutido ou nao, se não tem mesmo pai, é porque tem dados embutidos
+                if (f.getParent().getName() != dt.getName()) {
+                    rf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
+                    rfp = p.getSecond().getName();
+                } else {
+                    rf = fFirst.getName();
+                    rfp = p.getSecond().getName();
+                }
+            } else {
+                EmbeddedField f = (EmbeddedField) fFirst;
+                rf = "data_" + f.getSubDocType().getName() + fFirst.getName();
+                rfp = p.getSecond().getName();
+            }
+        }
+
+        //vem do join mesmo
+        if (valor == 1) {
+            String ret = "db.EC.find().forEach( function(data){\n"
+                    + "     var varData = [];\n"
+                    + "     data.data_Join.forEach(\n"
+                    + "         function(dataCopy) {\n"
+                    + "              varData.push(dataCopy);\n"
+                    + "         });\n"
+                    + "     db." + rfp + ".find("
+                    + "{ '" + rf + "': data." + lf + " }).forEach(\n"
+                    + "     function(data2) {\n"
+                    + "     varData.push( { \n";
+
+            Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
+            for (Field f : result.getNewFields()) {
+                if (f instanceof SimpleField) {
+                    SimpleField sf = (SimpleField) f;
+                    if (sf.getFieldMapping() != null) {
+                        ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                        List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                        if (fp == null) {
+                            fp = new ArrayList<>();
+                            fieldsToProject.put(ere, fp);
+                        }
+
+                        fp.add(new Pair<>(sf.getName(), sf.getName()));
+                    }
+                } else if (f instanceof EmbeddedField) {
+                    EmbeddedField ef = (EmbeddedField) f;
+                    DocumentType subDocType = ef.getSubDocType();
+                    for (Field subField : subDocType.getFields()) {
+                        if (subField instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) subField;
+                            if (sf.getFieldMapping() != null) {
+                                ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                                List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                                if (fp == null) {
+                                    fp = new ArrayList<>();
+                                    fieldsToProject.put(ere, fp);
+                                }
+                                fp.add(new Pair<>(sf.getName(), ef.getName() + "." + sf.getName()));
+                            }
+                        }
+                    }
+                }
+            }
+            Set<ERElement> erElements = fieldsToProject.keySet();
+            for (ERElement ere : erElements) {
+                //inserimos dados só se são distintos da entidade 1, a entidade 1 ja existe como primeiro atributo
+                //da entidade computada
+                if (ere != er1) {
+                    ret += "        data_" + ere.getName() + ": {\n";
+                    List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                    for (Pair<String, String> fieldName : fields) {
+                        ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                    }
+                    ret += "      }";
+                    //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                    if (erElements.size() > 1) {
+                        ret += ",\n";
+                    }
+                }
+            }
+            ret += "}\n"
+                    + ")\n"
+                    + "}\n"
+                    + ");\n"
+                    + "db.EC.update( {'" + lf + "': data." + lf + "},\n"
+                    + "                 { $set: { \n"
+                    + " 'data_Join': varData \n"
+                    + "} } );   \n"
+                    + "});";
+            return ret;
         } else {
-            EmbeddedField f = (EmbeddedField) fFirst;
-            rf = "data_" + f.getSubDocType().getName() + fFirst.getName();
-            rfp = p.getSecond().getName(); 
-        }
-    }  
-    
-    //vem do join mesmo
-    if(valor==1){
-           String ret = "db.EC.find().forEach( function(data){\n"
-                + "     var varData = [];\n"
-                + "     db." + rfp + ".find("
-                + "{ '" + rf + "': data." + lf + " }).forEach(\n"
-                + "     function(data2) {\n"
-                + "     varData.push( { \n";
 
-        Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
-        for (Field f : result.getNewFields()) {
-            if (f instanceof SimpleField) {
-                SimpleField sf = (SimpleField) f;
-                if (sf.getFieldMapping() != null) {
-                    ERElement ere = sf.getFieldMapping().getAttribute().getParent();
-                    List<Pair<String, String>> fp = fieldsToProject.get(ere);
-                    if (fp == null) {
-                        fp = new ArrayList<>();
-                        fieldsToProject.put(ere, fp);
+            //   aqui vem de completar atributos         
+            String ret = "db.EC.find().forEach( function(data){\n"
+                    + "     var novoArray = [];\n"
+                    + "     data.data_Join.forEach(function(data2) {\n"
+                    + "     data2." + lf + " = "
+                    + "db." + rfp + ".findOne("
+                    + "{ '" + rf + "': data2." + newlf + " });\n"
+                    + "     novoArray.push(data2);"
+                    + "\n });";
+
+            Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
+            for (Field f : result.getNewFields()) {
+                if (f instanceof SimpleField) {
+                    SimpleField sf = (SimpleField) f;
+                    if (sf.getFieldMapping() != null) {
+                        ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                        List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                        if (fp == null) {
+                            fp = new ArrayList<>();
+                            fieldsToProject.put(ere, fp);
+                        }
+
+                        fp.add(new Pair<>(sf.getName(), sf.getName()));
                     }
-
-                    fp.add(new Pair<>(sf.getName(), sf.getName()));
-                }
-            } else if (f instanceof EmbeddedField) {
-                EmbeddedField ef = (EmbeddedField) f;
-                DocumentType subDocType = ef.getSubDocType();
-                for (Field subField : subDocType.getFields()) {
-                    if (subField instanceof SimpleField) {
-                        SimpleField sf = (SimpleField) subField;
-                        if (sf.getFieldMapping() != null) {
-                            ERElement ere = sf.getFieldMapping().getAttribute().getParent();
-                            List<Pair<String, String>> fp = fieldsToProject.get(ere);
-                            if (fp == null) {
-                                fp = new ArrayList<>();
-                                fieldsToProject.put(ere, fp);
+                } else if (f instanceof EmbeddedField) {
+                    EmbeddedField ef = (EmbeddedField) f;
+                    DocumentType subDocType = ef.getSubDocType();
+                    for (Field subField : subDocType.getFields()) {
+                        if (subField instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) subField;
+                            if (sf.getFieldMapping() != null) {
+                                ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                                List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                                if (fp == null) {
+                                    fp = new ArrayList<>();
+                                    fieldsToProject.put(ere, fp);
+                                }
+                                fp.add(new Pair<>(sf.getName(), ef.getName() + "." + sf.getName()));
                             }
-                            fp.add(new Pair<>(sf.getName(), ef.getName() + "." + sf.getName()));
                         }
                     }
                 }
             }
+            ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    + "                 { $set: { \n"
+                    + " 'data_Join': novoArray \n"
+                    + "} } );   \n"
+                    + "});";
+            return ret;
         }
-        Set<ERElement> erElements = fieldsToProject.keySet();
-        for (ERElement ere : erElements) {
-            //inserimos dados só se são distintos da entidade 1, a entidade 1 ja existe como primeiro atributo
-            //da entidade computada
-            if(ere!=er1){
-                ret += "        data_" + ere.getName() + ": {\n";
-                List<Pair<String, String>> fields = fieldsToProject.get(ere);
-                for (Pair<String, String> fieldName : fields) {
-                    ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
-                }
-                ret += "      }";
-                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-                if (erElements.size() > 1) {
-                    ret += ",\n";
-                }
-            }
-        }
-                ret += "}\n"
-                + ")\n"
-                + "}\n"
-                + ");\n"
-                + "db.EC.update( {'" + lf + "': data." + lf + "},\n"
-                + "                 { $set: { \n"
-                + " 'data_Join': varData \n"
-                + "} } );   \n"
-                + "});";
-        return ret; 
-    } else
-    {
-        
-               //   aqui vem de completar atributos         
-        String ret = "db.EC.find().forEach( function(data){\n"
-                + "     var novoArray = [];\n"
-                + "     data.data_Join.forEach(function(data2) {\n"
-                + "     data2." + lf + " = "
-                + "db." + rfp + ".findOne("
-                + "{ '" + rf + "': data2." + newlf + " });\n"
-                + "     novoArray.push(data2);"
-                + "\n });";
-        
- 
-        Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
-        for (Field f : result.getNewFields()) {
-            if (f instanceof SimpleField) {
-                SimpleField sf = (SimpleField) f;
-                if (sf.getFieldMapping() != null) {
-                    ERElement ere = sf.getFieldMapping().getAttribute().getParent();
-                    List<Pair<String, String>> fp = fieldsToProject.get(ere);
-                    if (fp == null) {
-                        fp = new ArrayList<>();
-                        fieldsToProject.put(ere, fp);
-                    }
 
-                    fp.add(new Pair<>(sf.getName(), sf.getName()));
-                }
-            } else if (f instanceof EmbeddedField) {
-                EmbeddedField ef = (EmbeddedField) f;
-                DocumentType subDocType = ef.getSubDocType();
-                for (Field subField : subDocType.getFields()) {
-                    if (subField instanceof SimpleField) {
-                        SimpleField sf = (SimpleField) subField;
-                        if (sf.getFieldMapping() != null) {
-                            ERElement ere = sf.getFieldMapping().getAttribute().getParent();
-                            List<Pair<String, String>> fp = fieldsToProject.get(ere);
-                            if (fp == null) {
-                                fp = new ArrayList<>();
-                                fieldsToProject.put(ere, fp);
-                            }
-                            fp.add(new Pair<>(sf.getName(), ef.getName() + "." + sf.getName()));
-                        }
-                    }
-                }
-            }
-        }
-                ret +=  "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                + "                 { $set: { \n"
-                + " 'data_Join': novoArray \n"
-                + "} } );   \n"
-                + "});";
-        return ret;
-    }
-    
     }
 }

@@ -57,6 +57,18 @@ public class MongoSchema {
                     ret.add(dt);
                 }
             }
+            List<Field> fields = dt.getFields();
+            for (Field f : fields) {
+                if (f instanceof EmbeddedField) {
+                    EmbeddedField ef = (EmbeddedField) f;
+                    DocumentType embeddedDt = ef.getSubDocType();
+                    for (ERMapping erMapping : embeddedDt.erMappingList) {
+                        if (erMapping.erElement == e1) {
+                            ret.add(dt);
+                        }
+                    }
+                }
+            }
         }
         return ret;
     }

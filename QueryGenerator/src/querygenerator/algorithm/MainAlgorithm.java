@@ -54,6 +54,15 @@ public class MainAlgorithm {
         List<DocumentType> docTypesR = mappingModel.getMongoSchema().findDocumentTypes(r);
         List<DocumentType> docTypesE2 = mappingModel.getMongoSchema().findDocumentTypes(e2);
 
+        if (docTypesE1.isEmpty()) {
+            throw new RuntimeException("Impossível fazer consulta pois " + e1.getName() + " não tem documento mapeado!");
+        }
+        if (docTypesR.isEmpty()) {
+            throw new RuntimeException("Impossível fazer consulta pois " + r.getName() + " não tem documento mapeado!");
+        }
+        if (docTypesE2.isEmpty()) {
+            throw new RuntimeException("Impossível fazer consulta pois " + e2.getName() + " não tem documento mapeado!");
+        }
         for (DocumentType dt1 : docTypesE1) {
             for (DocumentType dtr : docTypesR) {
                 for (DocumentType dt2 : docTypesE2) {
@@ -204,7 +213,7 @@ public class MainAlgorithm {
                             + " via "
                             + ceResult.getName()
                             + " e "
-                            + dt2.getName(), ceResult,1));
+                            + dt2.getName(), ceResult, 1));
                 }
             }
         }
@@ -449,7 +458,7 @@ public class MainAlgorithm {
                                         + " via "
                                         + ceResult.getName()
                                         + " e "
-                                        + dt.getName(), ceResult,2));
+                                        + dt.getName(), ceResult, 2));
                             }
                         }
                     }

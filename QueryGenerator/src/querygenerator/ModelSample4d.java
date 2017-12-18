@@ -53,11 +53,13 @@ public class ModelSample4d {
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         
         DocumentType docTypeRegistration = new DocumentType("DocTypeRegistration");
+        docTypeRegistration.addERMapping(new ERMapping(registration, false));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         docTypePerson.addField(new EmbeddedField(docTypePerson, "data_Registration", docTypeRegistration));
         
         
         DocumentType docTypeDriversLicense= new DocumentType("DocTypeDriversLicense");
+        docTypeDriversLicense.addERMapping(new ERMapping(driversLicense, false));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));        

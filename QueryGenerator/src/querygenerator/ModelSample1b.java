@@ -68,7 +68,7 @@ public class ModelSample1b {
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
     
         DocumentType docTypePerson2 = new DocumentType("DocTypePerson2");
-        docTypePerson2.addERMapping(new ERMapping(person, true));
+        docTypePerson2.addERMapping(new ERMapping(person, false));
         docTypePerson2.addField(new SimpleField(docTypePerson2, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson2.addField(new SimpleField(docTypePerson2, "fName", "string", new FieldMapping(person.getAttribute("name"))));
         docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));

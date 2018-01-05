@@ -39,6 +39,20 @@ public class DocumentType {
                 return erM;
             }
         }
+        
+        //new 22/12/2017
+        List<Field> fields = this.getFields();
+        for (Field f : fields) {
+            if (f instanceof EmbeddedField) {
+                EmbeddedField ef = (EmbeddedField) f;
+                DocumentType embeddedDt = ef.getSubDocType();
+                for (ERMapping erMapping : embeddedDt.erMappingList) {
+                    if (erMapping.erElement == erElement) {
+                        return erMapping;
+                    }
+                }
+            }
+        }
         return null;
     }
 

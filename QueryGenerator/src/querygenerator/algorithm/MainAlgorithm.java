@@ -49,7 +49,7 @@ public class MainAlgorithm {
 
         // TODO: verificar se os atributos de "queryAttributes" 
         // realmente pertencem a e1, r ou e2
-        //aqui verificamos a que documentos estão mapeados as entidades e o relacionamento?? certo!
+        //aqui verificamos a que documentos estão mapeados as entidades e o relacionamento?? certo!      
         List<DocumentType> docTypesE1 = mappingModel.getMongoSchema().findDocumentTypes(e1);
         List<DocumentType> docTypesR = mappingModel.getMongoSchema().findDocumentTypes(r);
         List<DocumentType> docTypesE2 = mappingModel.getMongoSchema().findDocumentTypes(e2);
@@ -62,7 +62,7 @@ public class MainAlgorithm {
         }
         if (docTypesE2.isEmpty()) {
             throw new RuntimeException("Impossível fazer consulta pois " + e2.getName() + " não tem documento mapeado!");
-        }
+        }     
         for (DocumentType dt1 : docTypesE1) {
             for (DocumentType dtr : docTypesR) {
                 for (DocumentType dt2 : docTypesE2) {
@@ -75,7 +75,7 @@ public class MainAlgorithm {
                     documentTypes.add(dt1);
                     documentTypes.add(dtr);
                     documentTypes.add(dt2);
-
+                    
                     ComputedEntity ce = ComputedEntity.createNew(
                             dt1.findERMapping(e1).isMain(),
                             e1.getName()
@@ -83,7 +83,7 @@ public class MainAlgorithm {
                             + "-" + e2.getName(),
                             erElements,
                             documentTypes
-                    );
+                    );                   
                     Query q = new Query();
                     q.addOperation(new StartOperation("Start, primeira EC não vai ter atributos!!", ce));
 

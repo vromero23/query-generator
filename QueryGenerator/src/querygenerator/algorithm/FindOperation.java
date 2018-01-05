@@ -101,21 +101,21 @@ public class FindOperation extends Operation {
                 ret += "      }";
                 /*adicionar campo data_Join*/
                 if (erElementsNew.size() == 1) {
-                    ret += "\n ,data_Join: []";
+                    ret += "\n      ,data_Join: []";
                 } else {
-                    ret += "\n ,data_Join: [{";
+                    ret += "\n      ,data_Join: [{\n";
                 }
             } else {
-                ret += "      data_" + ere.getName() + ": {\n";
+                ret += "                data_" + ere.getName() + ": {\n";
                 List<Pair<String, String>> fields = fieldsToProject.get(ere);
                 for (Pair<String, String> fieldName : fields) {
-                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                    ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
                 }
                 ret += "      }";
                 ret += "\n";
                 //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
                 if (erElementsNew.size() > 1) {
-                    ret += ",\n";
+                    ret += ",";
                 }
                 if (nItem == erElementsNew.size()) {
                     ret += "}]";

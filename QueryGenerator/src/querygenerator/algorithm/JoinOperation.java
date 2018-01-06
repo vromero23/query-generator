@@ -44,7 +44,8 @@ public class JoinOperation extends Operation {
         String rf = " ";
         String rfp = " ";
         String newlf = " ";
-
+        String nomeEntidadeValorDois = " ";
+        String nomeAtributoIDEntidadeUM = " ";
 //        int nI = 1;
         ERElement er1 = result.erElements.get(0);
         //Recuperamos Entidade1
@@ -105,6 +106,8 @@ public class JoinOperation extends Operation {
                 if (valor == 2) {
                     lf = "data_" + f.getFieldMapping().getAttribute().getParent().getName();
                     newlf = "data_" + f.getFieldMapping().getAttribute().getParent().getName() + "." + fFirst.getName();
+                    nomeEntidadeValorDois = f.getFieldMapping().getAttribute().getParent().getName();
+                    nomeAtributoIDEntidadeUM = fFirst.getName();
                 }
             } else {
                 EmbeddedField f = (EmbeddedField) fFirst;
@@ -113,6 +116,8 @@ public class JoinOperation extends Operation {
                 if (valor == 2) {
                     lf = "data_" + f.getSubDocType().getName();
                     newlf = "data_" + f.getSubDocType().getName() + "." + fFirst.getName();
+                    nomeEntidadeValorDois = f.getSubDocType().getName();
+                    nomeAtributoIDEntidadeUM = fFirst.getName();
                 }
             }
         }
@@ -209,9 +214,81 @@ public class JoinOperation extends Operation {
                     + "} } );   \n"
                     + "});";
             return ret;
+        } else 
+
+//se vai completar atributos da primeira Entidade, E1
+        if (er1.getName() == nomeEntidadeValorDois) {
+            //System.out.println("TEM DE COMPLETAR ATRIBUTOS DA ENTIDADE 1");
+
+            String ret = "db.EC.find().forEach( function(data){\n"
+                    + "     var varData = [];\n"
+                    + "     db." + rfp + ".find("
+                    + "{ '" + rf + "': data." + newlf + " }).forEach(\n"
+                    + "     function(data2) {\n"
+                    + "     varData.push( { \n";
+
+            Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
+            for (Field f : result.getNewFields()) {
+                if (f instanceof SimpleField) {
+                    SimpleField sf = (SimpleField) f;
+                    if (sf.getFieldMapping() != null) {
+                        ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                        List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                        if (fp == null) {
+                            fp = new ArrayList<>();
+                            fieldsToProject.put(ere, fp);
+                        }
+
+                        fp.add(new Pair<>(sf.getName(), sf.getName()));
+                    }
+                } else if (f instanceof EmbeddedField) {
+                    EmbeddedField ef = (EmbeddedField) f;
+                    DocumentType subDocType = ef.getSubDocType();
+                    for (Field subField : subDocType.getFields()) {
+                        if (subField instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) subField;
+                            if (sf.getFieldMapping() != null) {
+                                ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                                List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                                if (fp == null) {
+                                    fp = new ArrayList<>();
+                                    fieldsToProject.put(ere, fp);
+                                }
+                                fp.add(new Pair<>(sf.getName(), ef.getName() + "." + sf.getName()));
+                            }
+                        }
+                    }
+                }
+            }
+            Set<ERElement> erElements = fieldsToProject.keySet();
+            for (ERElement ere : erElements) {
+                //inserimos dados só se são distintos da entidade 1, a entidade 1 ja existe como primeiro atributo
+                //da entidade computada
+                if (ere == er1) {
+                    ret += "        data_" + ere.getName() + ": {\n";
+                    ret +=  "         " + nomeAtributoIDEntidadeUM + ": data2._id" + ",\n";
+                    List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                    for (Pair<String, String> fieldName : fields) {
+                        ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                    }
+                    ret += "      }";
+                    //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                    if (erElements.size() > 1) {
+                        ret += ",\n";
+                    }
+
+                }
+                ret += "})}) ;\n";
+                ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                        + "                 { $set: { \n"
+                        + " 'data_" + ere.getName() + "': varData[0]." + "data_" + ere.getName() + "\n"
+                        + "} } ) });   \n";
+
+            }
+            return ret;
         } else {
 
-            //   aqui vem de completar atributos         
+            //   aqui vem de completar atributos  que NAO sao da entidade 1    
             String ret = "db.EC.find().forEach( function(data){\n"
                     + "     var novoArray = [];\n"
                     + "     data.data_Join.forEach(function(data2) {\n"
@@ -261,6 +338,5 @@ public class JoinOperation extends Operation {
                     + "});";
             return ret;
         }
-
     }
 }

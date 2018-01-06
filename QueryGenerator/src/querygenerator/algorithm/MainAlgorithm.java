@@ -46,7 +46,7 @@ public class MainAlgorithm {
                     + " " + r.getName()
             );
         }
-
+          
         // TODO: verificar se os atributos de "queryAttributes" 
         // realmente pertencem a e1, r ou e2
         //aqui verificamos a que documentos estão mapeados as entidades e o relacionamento?? certo!      
@@ -89,11 +89,11 @@ public class MainAlgorithm {
 
                     findDocTypeOperation(q, dt1);
                     completeAttributesOperations(q, e1, queryAttributes);
-
+                    
                     joinTwoEntitiesOperation(q, e1, r, q.getCopyOfLastComputedEntity(), dtr);
                     completeAttributesOperations(q, r, queryAttributes);
 
-                    joinTwoEntitiesOperation(q, e1, e2, q.getCopyOfLastComputedEntity(), dt2);
+                    joinTwoEntitiesOperation(q, e1, e2, q.getCopyOfLastComputedEntity(), dt2);                   
                     completeAttributesOperations(q, e2, queryAttributes);
 
                     if (!ret.contains(q)) {

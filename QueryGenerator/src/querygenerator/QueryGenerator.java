@@ -24,7 +24,7 @@ public class QueryGenerator {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSampleFunDep6.getModel();
+        MappingModel mm = ModelSampleFunDep1.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
@@ -49,8 +49,8 @@ public class QueryGenerator {
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
-        }
-        for (Query q : queries) {
+        //}
+        //for (Query q : queries) {
             System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
         }
         

@@ -70,8 +70,8 @@ public class ModelSample1b {
         DocumentType docTypePerson2 = new DocumentType("DocTypePerson2");
         docTypePerson2.addERMapping(new ERMapping(person, false));
         docTypePerson2.addField(new SimpleField(docTypePerson2, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        //docTypePerson2.addField(new SimpleField(docTypePerson2, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        docTypePerson2.addField(new SimpleField(docTypePerson2, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        //docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         
         docTypeRegistration.addField(new EmbeddedField(docTypeRegistration, "data_Person", docTypePerson2));
         

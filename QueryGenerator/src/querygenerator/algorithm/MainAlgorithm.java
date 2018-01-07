@@ -423,7 +423,7 @@ public class MainAlgorithm {
                                         if (f instanceof SimpleField) {
                                             SimpleField sf = (SimpleField) f;
                                             if (sf.getFieldMapping() != null
-                                                    && !ceResult.containsMappedField(sf.getFieldMapping().getAttribute())) {
+                                                    && !ceResult.containsMappedNewField(sf.getFieldMapping().getAttribute())) {
                                                 ceResult.addNewField(sf);
                                             }
                                         }

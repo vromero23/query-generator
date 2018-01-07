@@ -27,7 +27,7 @@ public class JoinOperation extends Operation {
 
     private Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> fields;
     private int valor;
-    public String newFieldWhere = " ";
+
 
     //Em Field dentro do fields, sempre vai ser um campo simples, vamos verificar se é embutido verificando o pai
     public JoinOperation(Pair<List<Pair<Field, DocumentType>>, List<Pair<Field, DocumentType>>> fields, String text, ComputedEntity result, int valor) {
@@ -46,17 +46,10 @@ public class JoinOperation extends Operation {
         String newlf = " ";
         String nomeEntidadeValorDois = " ";
         String nomeAtributoIDEntidadeUM = " ";
-//        int nI = 1;
-        ERElement er1 = result.erElements.get(0);
+        String newFieldWhere = " ";
         //Recuperamos Entidade1
-//        for (ERElement ere : result.erElements) {
-//            if (nI == 1) {
-//                er1 = ere;
-//            }
-//            nI++;
-//        }
+        ERElement er1 = result.erElements.get(0);
 
-        int nItem = 1;
         String nameAtribute = " ";
         String nameDocument = " ";
         String nameEntity = " ";
@@ -261,6 +254,7 @@ public class JoinOperation extends Operation {
                 }
             }
             Set<ERElement> erElements = fieldsToProject.keySet();
+            
             for (ERElement ere : erElements) {
                 //inserimos dados só se são distintos da entidade 1, a entidade 1 ja existe como primeiro atributo
                 //da entidade computada
@@ -269,7 +263,9 @@ public class JoinOperation extends Operation {
                     ret +=  "         " + nomeAtributoIDEntidadeUM + ": data2._id" + ",\n";
                     List<Pair<String, String>> fields = fieldsToProject.get(ere);
                     for (Pair<String, String> fieldName : fields) {
-                        ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                        if(fieldName.getSecond().toString() != "_id"){
+                            ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                        }
                     }
                     ret += "      }";
                     //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)

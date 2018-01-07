@@ -12,8 +12,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/QueryGeneratorOneToMany.java</file>
-            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/ModelSampleOneToMany.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/QueryGenerator2a.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/ModelSample1a.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/algorithm/JoinOperation.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/algorithm/MainAlgorithm.java</file>
         </group>
     </open-files>
 </project-private>

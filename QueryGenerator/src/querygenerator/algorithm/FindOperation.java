@@ -65,15 +65,9 @@ public class FindOperation extends Operation {
             }
         }
 
-        int nI = 1;
         ERElement er1 = null;
         //Recuperamos Entidade1
-        for (ERElement ere : result.erElements) {
-            if (nI == 1) {
-                er1 = ere;
-            }
-            nI++;
-        }
+        er1 = result.erElements.get(0);
 
         //É PRECISO ORDENAR erElements A PARTIR DO result.erElements, TEM DE FICAR ORDENADO
         //ENTIDADE 1 , RELACIONAMENTO, ENTIDADE 2

@@ -59,7 +59,7 @@ public class ModelSample4b {
         docTypePerson.addField(new EmbeddedField(docTypePerson, "data_Registration", docTypeRegistration));
         
         docTypePerson.addField(new SimpleField(docTypePerson, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-       // docTypePerson.addField(new SimpleField(docTypePerson, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        docTypePerson.addField(new SimpleField(docTypePerson, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));        
 
         

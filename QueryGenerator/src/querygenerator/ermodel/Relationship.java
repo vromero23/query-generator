@@ -28,6 +28,23 @@ public class Relationship extends ERElement {
         this.ends.add(re);
     }
 
+    public List<RelationshipEnd> getEnds() {
+        return ends;
+    }
+
+    public void setEnds(List<RelationshipEnd> ends) {
+        this.ends = ends;
+    }
+    
+    public String recoverCardinality(Entity ent) {
+        for (RelationshipEnd end : ends) {
+            if(end.entity.equals(ent)){
+                return end.getCardinality().toString();
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         String ret = "";

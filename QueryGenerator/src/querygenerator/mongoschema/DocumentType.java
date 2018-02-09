@@ -18,11 +18,21 @@ public class DocumentType {
     String name;
     List<ERMapping> erMappingList;
     List<Field> fields;
+    List<ArrayField> arrayField;
 
     public DocumentType(String name) {
         this.name = name;
         this.erMappingList = new ArrayList<>();
         this.fields = new ArrayList<>();
+        this.arrayField = new ArrayList<>();
+    }
+
+    public List<ArrayField> getArrayField() {
+        return arrayField;
+    }
+
+    public void setArrayField(List<ArrayField> arrayField) {
+        this.arrayField = arrayField;
     }
 
     public String getName() {
@@ -70,7 +80,15 @@ public class DocumentType {
         }
         this.fields.add(f);
     }
-
+    
+    public void addArrayField(ArrayField af){
+        //verificar depois se tem como validar!
+        //if (af.fields.parent != this) {
+        //    throw new RuntimeException("O pai do campo " + af.fields.name + " deve ser " + name);
+        //}
+        this.arrayField.add(af);
+    }
+   
     @Override
     public String toString() {
         String ret = "";
@@ -89,6 +107,15 @@ public class DocumentType {
             ret += "   " + f.toString();
             ret += "\n";
         }
+        if (arrayField.size() > 0) {
+           // ret += " ARRAY [ ";
+            for (ArrayField af : arrayField) {
+                ret += "\n" + af.toString();
+                ret += "\n";
+            }
+           // ret += " ] ";
+        }
+
         ret += "}";
         ret += "\n";
         return ret;

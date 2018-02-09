@@ -18,36 +18,34 @@ import querygenerator.mapping.MappingModel;
  *
  * @author daniellucredio
  */
-public class QueryGenerator2a {
+public class QueryGeneratorManyToOne {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample4e.getModel();
+        MappingModel mm = ModelSampleManyToOne1d.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
 
+        Entity car = (Entity) mm.getERModel().findERElement("Car");
+        Relationship drives = (Relationship) mm.getERModel().findERElement("Drives");
         Entity person = (Entity) mm.getERModel().findERElement("Person");
-        Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
-        Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");
 
         List<Attribute> queryAttributes = new ArrayList<>();
         queryAttributes.add(person.getAttribute("name"));
-        queryAttributes.add(person.getAttribute("address"));
-        queryAttributes.add(registration.getAttribute("observation"));
-        queryAttributes.add(driversLicense.getAttribute("number"));
+        queryAttributes.add(car.getAttribute("plate"));
+        queryAttributes.add(car.getAttribute("color"));
 
-        List<Query> queries = ma.binaryJoin(person, registration, driversLicense, queryAttributes);
+        List<Query> queries = ma.binaryJoin(car, drives, person, queryAttributes);
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
-        //}
-       // for (Query q : queries) {
+            //}
+            // for (Query q : queries) {
             System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
         }
-        
 
     }
 

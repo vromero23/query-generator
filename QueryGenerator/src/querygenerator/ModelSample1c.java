@@ -66,15 +66,15 @@ public class ModelSample1c {
         docTypeRegistration.addERMapping(new ERMapping(person, false));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "_id", "int", null));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
-      //  docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
+        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        //docTypeRegistration.addField(new SimpleField(docTypeRegistration, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
 
         DocumentType docTypeDriversLicense2 = new DocumentType("DocTypeDriversLicense2");
         docTypeDriversLicense2.addERMapping(new ERMapping(driversLicense, true));
-        //docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
+        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
+        //docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        //docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
          
         docTypeRegistration.addField(new EmbeddedField(docTypeRegistration, "data_DriversLicense", docTypeDriversLicense2));
         

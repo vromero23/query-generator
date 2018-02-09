@@ -7,6 +7,7 @@ package querygenerator.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
+import querygenerator.mongoschema.ArrayField;
 
 /**
  *
@@ -32,7 +33,7 @@ public class Query {
         return operations;
     }
 
-    public ComputedEntity getCopyOfLastComputedEntity() {
+    public ComputedEntity getCopyOfLastComputedEntity() {                  
         if (!operations.isEmpty()) {
             return ComputedEntity.createCopy(operations.get(operations.size() - 1).getResult());
         }

@@ -18,36 +18,34 @@ import querygenerator.mapping.MappingModel;
  *
  * @author daniellucredio
  */
-public class QueryGenerator2a {
+public class QueryGeneratorManyToMany {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample4e.getModel();
+        MappingModel mm = ModelSampleManyToMany1a.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
 
-        Entity person = (Entity) mm.getERModel().findERElement("Person");
-        Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
-        Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");
+        Entity car = (Entity) mm.getERModel().findERElement("Car");
+        Relationship repairs = (Relationship) mm.getERModel().findERElement("Repairs");
+        Entity garage = (Entity) mm.getERModel().findERElement("Garage");
 
         List<Attribute> queryAttributes = new ArrayList<>();
-        queryAttributes.add(person.getAttribute("name"));
-        queryAttributes.add(person.getAttribute("address"));
-        queryAttributes.add(registration.getAttribute("observation"));
-        queryAttributes.add(driversLicense.getAttribute("number"));
+        queryAttributes.add(car.getAttribute("color"));
+        queryAttributes.add(repairs.getAttribute("date"));
+        queryAttributes.add(garage.getAttribute("name"));
 
-        List<Query> queries = ma.binaryJoin(person, registration, driversLicense, queryAttributes);
+        List<Query> queries = ma.binaryJoin(car, repairs, garage, queryAttributes);
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
-        //}
-       // for (Query q : queries) {
+            //}
+            // for (Query q : queries) {
             System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
         }
-        
 
     }
 

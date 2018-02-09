@@ -66,7 +66,7 @@ public class ModelSample3g {
         docTypePerson2.addERMapping(new ERMapping(person, true));
         docTypePerson2.addField(new SimpleField(docTypePerson2, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
         //docTypePerson2.addField(new SimpleField(docTypePerson2, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        //docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+       // docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
           
         docTypeDriversLicense.addField(new EmbeddedField(docTypeDriversLicense, "data_Person", docTypePerson2));
         

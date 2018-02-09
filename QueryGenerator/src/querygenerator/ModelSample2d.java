@@ -103,7 +103,7 @@ public class ModelSample2d {
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
         //docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        //docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
    
         mongoSchema.addDocumentType(docTypeDriversLicense);
 

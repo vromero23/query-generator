@@ -24,7 +24,7 @@ public class QueryGeneratorOneToMany {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSampleOneToMany.getModel();
+        MappingModel mm = ModelSampleOneToMany1f.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
@@ -42,11 +42,10 @@ public class QueryGeneratorOneToMany {
 
         for (Query q : queries) {
             System.out.println("======================= Query =======================\n" + q.toString() + "\n");
-        //}
-       // for (Query q : queries) {
+            //}
+            // for (Query q : queries) {
             System.out.println("======================= Query Mongo =======================\n" + q.generateQuery() + "\n");
         }
-        
 
     }
 

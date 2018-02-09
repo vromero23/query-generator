@@ -13,6 +13,7 @@ import querygenerator.ermodel.Entity;
 import querygenerator.ermodel.Relationship;
 import querygenerator.ermodel.RelationshipEnd;
 import querygenerator.mapping.MappingModel;
+import querygenerator.mongoschema.ArrayField;
 import querygenerator.mongoschema.DocumentType;
 import querygenerator.mongoschema.ERMapping;
 import querygenerator.mongoschema.EmbeddedField;
@@ -21,7 +22,7 @@ import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
 
 
-public class ModelSampleOneToMany1 {
+public class ModelSampleOneToMany1f {
 
     public static MappingModel getModel() {
         ERModel erModel = new ERModel();
@@ -39,20 +40,21 @@ public class ModelSampleOneToMany1 {
         erModel.addERElement(car);
 
         Relationship drives = new Relationship("Drives");
+        drives.addAttribute(new Attribute(drives, "observation", "string", false));
         drives.addRelationshipEnd(new RelationshipEnd(person, Cardinality.One));
         drives.addRelationshipEnd(new RelationshipEnd(car, Cardinality.Many));
         erModel.addERElement(drives);
 
         MongoSchema mongoSchema = new MongoSchema();
-
+        
+        
         DocumentType docTypePerson = new DocumentType("DocTypePerson");
         docTypePerson.addERMapping(new ERMapping(person, true));
         docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        
         mongoSchema.addDocumentType(docTypePerson);
-         
+                         
         DocumentType docTypeCar = new DocumentType("DocTypeCar");
         docTypeCar.addERMapping(new ERMapping(car, true));
         docTypeCar.addField(new SimpleField(docTypeCar, "_id", "int", new FieldMapping(car.getAttribute("id"))));
@@ -65,11 +67,16 @@ public class ModelSampleOneToMany1 {
         docTypeDrives.addERMapping(new ERMapping(drives, true));
         docTypeDrives.addERMapping(new ERMapping(person, false));
         docTypeDrives.addERMapping(new ERMapping(car, false));
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fCarId", "int", new FieldMapping(car.getAttribute("id"))));
+        docTypeDrives.addField(new SimpleField(docTypeDrives, "_id", "int", new FieldMapping(person.getAttribute("id"))));
+       // docTypeDrives.addField(new SimpleField(docTypeDrives, "fName", "string", new FieldMapping(person.getAttribute("name"))));        
+        //docTypeDrives.addField(new SimpleField(docTypeDrives, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        docTypeDrives.addField(new SimpleField(docTypeDrives, "fObservation", "string", new FieldMapping(drives.getAttribute("observation"))));       
+        docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
+       // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
+       // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color")))));
+        
+        
         mongoSchema.addDocumentType(docTypeDrives);
-        
-        
         List<String> violations = mongoSchema.validate();
         if(violations.size() > 0) {
             for(String v:violations) {

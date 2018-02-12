@@ -170,16 +170,35 @@ public class FindOperation extends Operation {
                         }
                     }
                 }  else if (entity1Cardinality.equals("One") && ere.getName() == entity1.getName()) {
-                    ret += "   db.EC.insert( {\n";
-                    ret += "      data_" + ere.getName() + ": {\n";
-                    for (Pair<String, String> fieldName : fields) {
-                        ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
-                    }
-                    ret += "      }";
-                    if (erElementsNew.size() == 1) {
-                        ret += "\n      ,data_Join: []";
+                    if(result.getArrayField().size() > 0)
+                    {    
+                        ret += "   db.EC.insert( {\n";
+                        ret += "      data_" + ere.getName() + ": {\n";
+                        for (Pair<String, String> fieldName : fields) {
+                                int resultado = fieldName.getSecond().toLowerCase().indexOf("id");
+                                if (resultado != -1) {
+                                    identificadorManytoOne = fieldName.getSecond();
+                                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                } else {
+                                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                }
+                            // ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                        }
+                        ret += "      }";
+                        updateManytoOne = "data_" + ere.getName();
+                        ret += "\n      ,data_Join: []});";
                     } else {
-                        ret += "\n      ,data_Join: [{\n";
+                        ret += "   db.EC.insert( {\n";
+                        ret += "      data_" + ere.getName() + ": {\n";
+                        for (Pair<String, String> fieldName : fields) {
+                            ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                        }
+                        ret += "      }";
+                        if (erElementsNew.size() == 1) {
+                            ret += "\n      ,data_Join: []";
+                        } else {
+                            ret += "\n      ,data_Join: [{\n";
+                        }
                     }
                 } else if (entity1Cardinality.equals("Many") && ere.getName() == entity1.getName() && entity2Cardinality.equals("Many") ) 
                 {
@@ -224,6 +243,7 @@ public class FindOperation extends Operation {
                     else 
                     {    
                         if(ere.getName().equals(RelationshipName)) {
+                            
                             ret += "   db.EC.update( {";
                             ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':data1." + identificadorManytoOne + "},\n";
                             ret += "{   $set: { \n";
@@ -233,13 +253,7 @@ public class FindOperation extends Operation {
                                 ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
                             }
                             ret += "        },";
-                        } /*else if (!ere.getName().equals(RelationshipName)){
-                            ret += "\n                data_" + ere.getName() + ": {\n";
-                            for (Pair<String, String> fieldName : fields) {
-                                ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
-                            }
-                            ret += "        }";
-                        }*/ else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() > 0){
+                        } else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() > 0){
                             String nameArrayField2 = " ";
                             List<ArrayField> listArrayField = new ArrayList<>();
                             listArrayField = result.getArrayField();
@@ -263,9 +277,6 @@ public class FindOperation extends Operation {
                                 if (erElementsNew.size() > 1) {
                                     ret += ",\n";
                                 }
-                                /*if (nItem == erElementsNew.size()) {
-                                    ret += "}]";
-                                }*/
                             }
                         }
                         //modificado porque gerava com erro consulta manyToone1a
@@ -283,54 +294,72 @@ public class FindOperation extends Operation {
                         }*/
                     }
                 } else {
-                    String nameArrayField= " ";
-                    if (result.getArrayField().size() > 0) {
-                        List<ArrayField> listArrayField = new ArrayList<>();
-                        listArrayField = result.getArrayField();
-                        for (ArrayField af : listArrayField) {
-                            nameArrayField = af.getName();
-                        }
-                        int resultado = nameArrayField.toLowerCase().indexOf(ere.getName().toLowerCase());
-                        if (resultado != -1) {
-                            ret += "                data_" + ere.getName() + ":" + "data.data_" + ere.getName();
-                            if (nItem == erElementsNew.size()) {
-                                ret += "}]\n";
-                            }
-                        } else {
-                            ret += "                data_" + ere.getName() + ": {\n";
+                    String nameArrayField = " ";
+                    List<ArrayField> listArrayField = new ArrayList<>();
+                    listArrayField = result.getArrayField();
+                    for (ArrayField af : listArrayField) {
+                        nameArrayField = af.getName();
+                    }
+                    if(ere.getName().equals(RelationshipName) && !nameArrayField.equals(" ") ) {
+                            ret += "\n      data." + nameArrayField + ".forEach(function(data1){";
+                            ret += "\n      db.EC.update( {";
+                            ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':data." + identificadorManytoOne + "},\n";
+                            ret += "            { $addToSet: { \n";
+                            ret += "                'data_Join': {\n";
+                            ret += "                    data_" + ere.getName() + ": {\n";
                             for (Pair<String, String> fieldName : fields) {
-                                ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                ret += "                        " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
                             }
-                            ret += "      }";
-                            //ret += "\n";
-                            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-                            if (erElementsNew.size() > 1) {
-                                ret += ",\n";
+                            ret += "                    },";
+                    }  else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() > 0){
+                            String nameArrayField2 = " ";
+                            List<ArrayField> listArrayField2 = new ArrayList<>();
+                            listArrayField2 = result.getArrayField();
+                            for (ArrayField af : listArrayField2) {
+                                nameArrayField2 = af.getName();
                             }
-                            if (nItem == erElementsNew.size()) {
-                                ret += "}]";
-                            }       
-                        }
+                            int resultado = nameArrayField2.toLowerCase().indexOf(ere.getName().toLowerCase());
+                            if (resultado != -1) {
+                               /* ret += "                data_" + ere.getName() + ":" + "data.data_" + ere.getName();
+                                if (nItem == erElementsNew.size()) {
+                                    ret += "}]\n";
+                                }
+                            } else {*/
+                                ret += "\n                   data_" + ere.getName() + ": {\n";
+                                for (Pair<String, String> fieldName : fields) {
+                                    ret += "                        " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                }
+                                ret += "                    }";
+                                //ret += "\n";
+                                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                                if (erElementsNew.size() > 1) {
+                                    ret += ",\n";
+                                }
+                                if (nItem == erElementsNew.size()) {
+                                    ret += "              }}";
+                                    ret += "\n          });\n";
+                                }
+                            }
                     } else {
                         ret += "                data_" + ere.getName() + ": {\n";
                         for (Pair<String, String> fieldName : fields) {
                             ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
                         }
-                        ret += "      }";
-                        ret += "\n";
+                        ret += "                }";
+                        //ret += "\n";
                         //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
                         if (erElementsNew.size() > 1) {
-                            ret += ",";
+                            ret += ",\n";
                         }
                         if (nItem == erElementsNew.size()) {
-                            ret += "}]";
+                            ret += "            }]\n";
                         }
                     }
                 }
             }
             nItem++;
         }
-        ret += "});\n";
+        ret += "        });\n";
         ret += "});";
         return ret;
     }

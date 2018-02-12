@@ -165,12 +165,6 @@ public class JoinOperation extends Operation {
                     rfp = p.getSecond().getName();
                 }
             }
-            //acho que esta parte está a mais, testar.
-            // else {
-            //   EmbeddedField f = (EmbeddedField) fFirst;
-            //   rf = "data_" + f.getSubDocType().getName() + fFirst.getName();
-            //  rfp = p.getSecond().getName();
-            //}
         }
         //TERMINA AQUI aqui verificamos os rigth field para construir correctamente consulta javascript
 
@@ -208,7 +202,9 @@ public class JoinOperation extends Operation {
                 }
             }
         }
-
+         
+        Set<ERElement> erElements = fieldsToProject.keySet();
+        
         //sempre inserimos atributos do relacionamento no fieldsToProject, se for atualizar pra frente dados do join
         //se for atualizar dados da primeira entidade, nao precisamos inserir
         String RelationshipName = "";
@@ -222,7 +218,6 @@ public class JoinOperation extends Operation {
         String entity1Cardinality = r.recoverCardinality(ent1);
         String entity2Cardinality = r.recoverCardinality(ent2);
         
-        Set<ERElement> erElements = fieldsToProject.keySet();
         int existeRelationship = 0;
         for (ERElement ere : erElements) {
             if(ere.getName().equals(RelationshipName)){
@@ -246,7 +241,6 @@ public class JoinOperation extends Operation {
                                 fp = new ArrayList<>();
                                 fieldsToProject.put(ere, fp);
                             }
-
                             fp.add(new Pair<>(sf.getName(), sf.getName()));
                         }
                     }
@@ -254,9 +248,7 @@ public class JoinOperation extends Operation {
             }
         }
 
-
-        //System.out.println("ENTIDADE: "+ ent1.getName().toString() + " CARDINALIDADE: " + entity1Cardinality);
-        //System.out.println("ENTIDADE: "+ ent2.getName().toString() + " CARDINALIDADE: " + entity2Cardinality);
+        
         //AQUI COMEÇA LOGICA DE MAPEAMENTO 1-1
         //VALOR==1 vem do join 
         if (valor == 1) {
@@ -306,41 +298,73 @@ public class JoinOperation extends Operation {
                 //VER PARA ADICIONAR ATRIBUTOS DO RELACIONAMENTO.
             if (entity1Cardinality.equals("One") && entity2Cardinality.equals("Many")) {
                 if (result.getArrayField().size() > 0) {
+                    List<ArrayField> listArrayField = new ArrayList<>();
+                    listArrayField = result.getArrayField();
+                    for (ArrayField af : listArrayField) {
+                        if (af.getFields() instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) af.getFields();
+                            if (sf.getFieldMapping() != null) {
+                                ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                                List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                                if (fp == null) {
+                                    fp = new ArrayList<>();
+                                    fieldsToProject.put(ere, fp);
+                                }
+                                fp.add(new Pair<>(sf.getName(), sf.getName()));
+                            }
+                        }
+                    }
+                    
+                    
                     String nameAR = "";
                     String ret = "db.EC.find().forEach( function(data){\n"
                             + "     var varData = [];\n"
-                            + "     var varData2 = [];\n"
                             + "     data.data_Join.forEach(\n"
                             + "         function(dataCopy) {\n"
                             + "              varData.push(dataCopy);\n"
                             + "         });\n"
                             + "     db." + rfp + ".find("
                             + "{ '" + rf + "': data." + lf + " }).forEach(\n"
-                            + "     function(data2) {\n"
-                            + "     varData.push( { \n";
-                    List<ArrayField> listArrayField = new ArrayList<>();
-                    listArrayField = result.getArrayField();
-                    for (ArrayField af : listArrayField) {
+                            + "     function(data2) {";
+                          //  + "     varData.push( { \n";
+                    List<ArrayField> listArrayField2 = new ArrayList<>();
+                    listArrayField2 = result.getArrayField();
+                    for (ArrayField af : listArrayField2) {
                         nameAR = af.getName();
                     }
-                    ret += "         " + nameAR + ":" + "data2." + nameAR + ",\n";
+                    ret += "\n      data2." + nameAR + ".forEach(function(data1){";
+                    ret += "\n      db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n";
+                    ret += "            { $addToSet: { \n";
+                    ret += "                'data_Join': {\n";
+                    //ret += "                    data_" + ere.getName() + ": {\n";
+                    
+                   // ret += "         " + nameAR + ":" + "data2." + nameAR + ",\n";
                     for (ERElement ere : erElements) {
-                        if (ere.getName().equals(RelationshipName)) {
+                        if (!ere.getName().equals(er1.getName())) {
                             List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                            ret += "                        data_" + ere.getName() + ": {\n";
                             for (Pair<String, String> fieldName : fields) {
-                                ret += "         data_" + ere.getName() + ": {\n";
-                                ret += "         " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                                ret += "                            " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
                             }
-                            ret += "        }\n";
+                            ret += "                        },\n";
                         }
+                        /*if (erElements.size() > 1) {
+                            ret += ",\n";
+                        }*/
+                        /*if (nItem == erElementsNew.size()) {
+                            ret += "              }}";
+                            ret += "\n          });\n";
+                        }*/
                     }
-                    ret += "        }\n"
-                            + ")});\n"
-                            + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                            + "                 { $set: { \n"
-                            + " 'data_Join': varData \n"
-                            + "} } );   \n"
-                            + "});";
+                    ret += "                }\n"
+                    + "         }});\n"
+                    + "       });\n"
+                            //+ "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                            //+ "                 { $set: { \n"
+                            //+ " 'data_Join': varData \n"
+                           // + "} } );   \n"
+                     + "   });\n"
+                     + "   });";
                     return ret;
 
                 } else {
@@ -369,21 +393,19 @@ public class JoinOperation extends Operation {
                             }
                             //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
                             if (erElements.size() > 1) {
-                               ret += "},\n";
+                               ret += "        },\n";
                             }
                              
                         }
                     }
-                    ret += "}\n"
-                            + ");\n"
-                            + "}\n"
-                            + ");\n"
-                            //+ "varData2.push({ " + lf + ": varData});\n"
-                            + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                            + "                 { $set: { \n"
-                            + " 'data_Join': varData \n"
-                            + "} } );   \n"
-                            + "});";
+                    ret += "});\n"
+                    + "});\n"
+                    //+ "varData2.push({ " + lf + ": varData});\n"
+                    + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    + "                 { $set: { \n"
+                    + " 'data_Join': varData \n"
+                    + "} } );   \n"
+                    + "});";
                     return ret;
                 }
             }
@@ -580,59 +602,55 @@ public class JoinOperation extends Operation {
                 if (result.getArrayField().size() > 0 && (!er1.getName().equals(nomeEntidadeValorDois))) {
                     String ret = "db.EC.find().forEach( function(data){\n"
                             + "    var varData = [];\n"
-                            + "    var varData2 = [];\n"
-                            + "    data.data_Join.forEach(\n"
-                            + "      function(data1) {\n"
-                            + "        data1." + lf + ".forEach(\n"
-                            + "        function(data2){\n"
+                            + "    data.data_Join.forEach(function(data1) {\n"
                             + "            db." + rfp + ".find("
-                            + "{ '" + rf + "': data2." + lfArrayField + " }).forEach(\n"
-                            + "                function(data3) {\n"
-                            + "                varData.push( { \n";
-                    for (ERElement ere : erElements) {
-                        List<Pair<String, String>> fields = fieldsToProject.get(ere);
-                        for (Pair<String, String> fieldName : fields) {
-                            if (fieldName.getSecond().toString() == "_id") {
-                                if(!ere.getName().equals(RelationshipName)){
-                                    ret += "                    " + lfArrayField + ": data3." + fieldName.getSecond() + ",\n";
-                                }
-                            } else {
-                                if(!ere.getName().equals(RelationshipName)){
-                                    ret += "                    " + fieldName.getFirst() + ": data3." + fieldName.getSecond() + ",\n";
-                                }
-                            }    
-                        }
-                        //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-                        /*if (erElements.size() > 1) {
-                            ret += ",\n";
-                        }*/
-                    }
-                    ret += "           })\n"
-                            + "       });\n"
-                            + "   });\n"
-                           // + "});\n"
-                         //   + "varData2.push({ " + lf + ": varData});\n"
-                            + "varData2.push({ \n";
-                            for (ERElement ere : erElements) {
-                               List<Pair<String, String>> fields = fieldsToProject.get(ere);
-                               for (Pair<String, String> fieldName : fields) {
-                                   if (ere.getName().equals(RelationshipName)){
-                                       ret += "        data_" + ere.getName() + ": {\n";
-                                       ret += "         " + fieldName.getFirst() + ": data1." + "data_" + ere.getName() + "." + fieldName.getSecond() + ",\n";
-                                   } 
-                               }
+                            + "{ '" + rf + "': data1.";
+                            String nameArrayField2 = " ";
+                            List<ArrayField> listArrayField2 = new ArrayList<>();
+                            listArrayField2 = result.getArrayField();
+                            for (ArrayField af : listArrayField2) {
+                                nameArrayField2 = af.getName();
                             }
-                            if (erElements.size() > 1) {
-                                    ret += "},\n";
-                                }
-                            //ret+= "         },\n"
-                            ret += "         " + lf + ": varData});\n"
-                            + "});\n"
-                            + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                            + "                 { $set: { \n"
-                            + " 'data_Join': varData2 \n"
-                            + "} } );   \n"
-                            + "});";
+                            ret += nameArrayField2 + ".";
+                            ret += lfArrayField + "}).forEach(function(data2) {\n"
+                            + "           varData.push( { \n";
+                            
+                        for (ERElement ere : erElements) {
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                            for (Pair<String, String> fieldName : fields) {
+                                if (fieldName.getSecond().toString() == "_id") {
+                                    if(!ere.getName().equals(RelationshipName)){
+                                        ret += "                        " + lfArrayField + ": data2." + fieldName.getSecond() + ",\n";
+                                    }
+                                } else {
+                                    if(!ere.getName().equals(RelationshipName)){
+                                        ret += "                        " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                                    }
+                                }    
+                            }
+                    }
+                    ret += "                },\n";
+                    ret += "                data_" + RelationshipName + ": {\n";
+                    List<ArrayField> listArrayField = new ArrayList<>();
+                    listArrayField = result.getArrayField();
+                    for (ArrayField af : listArrayField) {
+                        if (af.getFields() instanceof SimpleField){
+                            SimpleField sf = (SimpleField) af.getFields();
+                            if(sf.getFieldMapping().getAttribute().getParent().getName().equals(RelationshipName)){
+                                 ret += "                        " + sf.getName()  + ": data1." + "data_" + RelationshipName + "." +  sf.getName() + ",\n";
+                            }
+                        }
+                    }
+                    ret += "                }\n"
+                    + "       })\n"
+                    + "   });\n"
+                    + "});\n"
+                    + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    + "{ $set: { \n"
+                    + "         'data_Join': varData\n"
+                    + "} } );   \n"
+                    + "});";
                     return ret;
                 } else //vai completar atributos da primeira Entidade, E1
                 if (er1.getName() == nomeEntidadeValorDois) {

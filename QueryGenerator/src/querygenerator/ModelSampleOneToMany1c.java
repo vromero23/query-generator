@@ -62,9 +62,8 @@ public class ModelSampleOneToMany1c {
         docTypeCar.addField(new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeCar.addField(new SimpleField(docTypeCar, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypeCar.addField(new SimpleField(docTypeCar, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-       
+        //docTypeCar.addField(new SimpleField(docTypeCar, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        //docTypeCar.addField(new SimpleField(docTypeCar, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fObservation", "string", new FieldMapping(drives.getAttribute("observation"))));       
         mongoSchema.addDocumentType(docTypeCar);
         

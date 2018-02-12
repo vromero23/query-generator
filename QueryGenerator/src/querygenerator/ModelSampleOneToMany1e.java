@@ -67,11 +67,11 @@ public class ModelSampleOneToMany1e {
         docTypeDrives.addERMapping(new ERMapping(drives, true));
         docTypeDrives.addERMapping(new ERMapping(person, false));
         docTypeDrives.addERMapping(new ERMapping(car, false));
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fObservation", "string", new FieldMapping(drives.getAttribute("observation"))));       
         docTypeDrives.addField(new SimpleField(docTypeDrives, "_id", "int", new FieldMapping(person.getAttribute("id")))); 
         docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
         //docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
         //docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color")))));
+        docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fObservation", "string", new FieldMapping(drives.getAttribute("observation")))));         
         mongoSchema.addDocumentType(docTypeDrives);
         
         

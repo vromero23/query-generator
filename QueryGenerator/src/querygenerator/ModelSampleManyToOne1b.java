@@ -61,11 +61,11 @@ public class ModelSampleManyToOne1b {
         docTypePerson.addERMapping(new ERMapping(drives, true));
         docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "fObservation", "string", new FieldMapping(drives.getAttribute("observation"))));
-        docTypePerson.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
+        docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));     
+        docTypePerson.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "_id", "int", new FieldMapping(car.getAttribute("id")))));
         docTypePerson.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
         docTypePerson.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color")))));
+        docTypePerson.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fObservation", "string", new FieldMapping(drives.getAttribute("observation")))));
         mongoSchema.addDocumentType(docTypePerson);
                          
         

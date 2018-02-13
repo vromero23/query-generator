@@ -24,7 +24,7 @@ public class QueryGeneratorManyToMany {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSampleManyToMany1a.getModel();
+        MappingModel mm = ModelSampleManyToMany1b.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);

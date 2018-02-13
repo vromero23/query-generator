@@ -325,14 +325,14 @@ public class JoinOperation extends Operation {
                             + "         });\n"
                             + "     db." + rfp + ".find("
                             + "{ '" + rf + "': data." + lf + " }).forEach(\n"
-                            + "     function(data2) {";
+                            + "     function(data1) {";
                           //  + "     varData.push( { \n";
                     List<ArrayField> listArrayField2 = new ArrayList<>();
                     listArrayField2 = result.getArrayField();
                     for (ArrayField af : listArrayField2) {
                         nameAR = af.getName();
                     }
-                    ret += "\n      data2." + nameAR + ".forEach(function(data1){";
+                    ret += "\n      data1." + nameAR + ".forEach(function(data2){";
                     ret += "\n      db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n";
                     ret += "            { $addToSet: { \n";
                     ret += "                'data_Join': {\n";
@@ -344,7 +344,7 @@ public class JoinOperation extends Operation {
                             List<Pair<String, String>> fields = fieldsToProject.get(ere);
                             ret += "                        data_" + ere.getName() + ": {\n";
                             for (Pair<String, String> fieldName : fields) {
-                                ret += "                            " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                ret += "                            " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
                             }
                             ret += "                        },\n";
                         }
@@ -413,14 +413,75 @@ public class JoinOperation extends Operation {
 
             //AQUI COMEÇA LOGICA VALOR == 1 JOIN  MANY TO ONE N-1
             if (entity1Cardinality.equals("Many") && entity2Cardinality.equals("One")) {
+                if (result.getArrayField().size() > 0) {
+                    List<ArrayField> listArrayField = new ArrayList<>();
+                    listArrayField = result.getArrayField();
+                    for (ArrayField af : listArrayField) {
+                        if (af.getFields() instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) af.getFields();
+                            if (sf.getFieldMapping() != null) {
+                                ERElement ere = sf.getFieldMapping().getAttribute().getParent();
+                                List<Pair<String, String>> fp = fieldsToProject.get(ere);
+                                if (fp == null) {
+                                    fp = new ArrayList<>();
+                                    fieldsToProject.put(ere, fp);
+                                }
+                                fp.add(new Pair<>(sf.getName(), sf.getName()));
+                            }
+                        }
+                    }
+                    
+                    String nameAR = "";
+                    String identifierArrayField = " ";
+                    String ret = "db.EC.find().forEach( function(data){\n"
+                            + "     var varData = [];\n"
+                            + "     data.data_Join.forEach(\n"
+                            + "         function(dataCopy) {\n"
+                            + "              varData.push(dataCopy);\n"
+                            + "         });\n"
+                            + "     db." + rfp + ".find().forEach(\n"
+                            + "         function(data1) {";
+                    List<ArrayField> listArrayField2 = new ArrayList<>();
+                    listArrayField2 = result.getArrayField();
+                    for (ArrayField af : listArrayField2) {
+                        nameAR = af.getName();
+                        if (af.getFields() instanceof SimpleField) {
+                            SimpleField sf = (SimpleField) af.getFields();
+                            int resultado = sf.getName().toLowerCase().indexOf("id");
+                            if (resultado != -1) {
+                                identifierArrayField = sf.getName();
+                            }
+                        }
+                    }
+                    ret += "\n              data1." + nameAR + ".forEach(function(data2){";
+                    ret += "\n                  db.EC.update( {'data_" + newFieldWhere + "': data2." + identifierArrayField + "},\n";
+                    ret += "                        { $addToSet: { \n";
+                    ret += "                            'data_Join': {\n";
+                    for (ERElement ere : erElements) {
+                        if (!ere.getName().equals(er1.getName())) {
+                            List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                            ret += "                              data_" + ere.getName() + ": {\n";
+                            if(ere.getName().equals(RelationshipName)){
+                                for (Pair<String, String> fieldName : fields) {
+                                    ret += "                                   " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                                }
+                            } else {
+                                for (Pair<String, String> fieldName : fields) {
+                                    ret += "                                   " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                }
+                            }
+                            ret += "                              },\n";
+                        }
+                    }
+                    ret += "                }\n"
+                    + "         }});\n"
+                    + "       });\n"
+                     + "   });\n"
+                     + "   });";
+                    return ret;
 
-//                System.out.println("*****************dados JOIN OPERATION***********************");
-//                System.out.println("rpf: " + rfp);
-//                System.out.println("rfManyToOne: " + rfManyToOne);
-//                System.out.println("lf: " + lf);
-                // System.out.println("newlf: " + newlf);
-                //  System.out.println("newFieldWhere: " + newFieldWhere);
-
+                } else {
+                
                 String ret = "db.EC.find().forEach( function(data){\n"
                         + "     var varData = [];\n"
                         + "     data.data_Join.forEach(\n"
@@ -458,6 +519,7 @@ public class JoinOperation extends Operation {
                         + "} } );   \n"
                         + "});";
                 return ret;
+            }
             }
             if (entity1Cardinality.equals("Many") && entity2Cardinality.equals("Many")) {
                 String ret = "db.EC.find().forEach( function(data){\n"

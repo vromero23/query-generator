@@ -22,7 +22,7 @@ import querygenerator.mongoschema.MongoSchema;
 import querygenerator.mongoschema.SimpleField;
 
 
-public class ModelSampleOneToMany1f {
+public class ModelSampleManyToOne1f {
 
     public static MappingModel getModel() {
         ERModel erModel = new ERModel();
@@ -41,8 +41,8 @@ public class ModelSampleOneToMany1f {
 
         Relationship drives = new Relationship("Drives");
         drives.addAttribute(new Attribute(drives, "observation", "string", false));
-        drives.addRelationshipEnd(new RelationshipEnd(person, Cardinality.One));
         drives.addRelationshipEnd(new RelationshipEnd(car, Cardinality.Many));
+        drives.addRelationshipEnd(new RelationshipEnd(person, Cardinality.One));
         erModel.addERElement(drives);
 
         MongoSchema mongoSchema = new MongoSchema();
@@ -68,8 +68,8 @@ public class ModelSampleOneToMany1f {
         docTypeDrives.addERMapping(new ERMapping(person, false));
         docTypeDrives.addERMapping(new ERMapping(car, false));
         docTypeDrives.addField(new SimpleField(docTypeDrives, "_id", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fName", "string", new FieldMapping(person.getAttribute("name"))));        
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        //docTypeDrives.addField(new SimpleField(docTypeDrives, "fName", "string", new FieldMapping(person.getAttribute("name"))));        
+        //docTypeDrives.addField(new SimpleField(docTypeDrives, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
        // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
        // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color")))));

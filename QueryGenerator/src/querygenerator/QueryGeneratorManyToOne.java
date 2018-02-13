@@ -24,7 +24,7 @@ public class QueryGeneratorManyToOne {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSampleManyToOne1a.getModel();
+        MappingModel mm = ModelSampleManyToOne1f.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);

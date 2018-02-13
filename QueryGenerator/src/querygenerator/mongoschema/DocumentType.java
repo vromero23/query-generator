@@ -132,7 +132,34 @@ public class DocumentType {
                         hasMappedField = true;
                     }
                 }
-            }
+                if (f instanceof SimpleField) {
+                    SimpleField sf = (SimpleField) f;
+                    if (arrayField.size() > 0) {
+                        for (ArrayField afceResult : arrayField) {
+                            if (afceResult.getFields() instanceof SimpleField) {
+                                SimpleField sfCeResult = (SimpleField) afceResult.getFields();
+                                //if (sf.getFieldMapping().getAttribute().getParent().getName() == sfCeResult.getFieldMapping().getAttribute().getParent().getName()) {
+                                 if(sfCeResult.fieldMapping != null
+                                    && sfCeResult.fieldMapping.attribute.getParent() == m.erElement)
+                                    hasMappedField = true;
+                                }
+                            }
+                        }
+                    }
+                if (f instanceof EmbeddedField) {
+                    EmbeddedField ef = (EmbeddedField) f;
+                    DocumentType embeddedDt = ef.getSubDocType();
+                    for (Field f2 : embeddedDt.getFields()) {
+                        if (f2 instanceof SimpleField) {
+                            SimpleField sf2 = (SimpleField) f2;
+                            if (sf2.fieldMapping != null
+                                    && sf2.fieldMapping.attribute.getParent() == m.erElement) {
+                                hasMappedField = true;
+                            }
+                        }
+                }
+           }
+        }
             if (!hasMappedField) {
                 violations.add("Entidade " + m.erElement.getName() + " está mapeada"
                         + " dentro do DocumentType " + name + ", porém não há nenhum"

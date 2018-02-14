@@ -58,7 +58,7 @@ public class ModelSampleManyToMany1b {
         docTypeCar.addField(new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color"))));
         docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fGarageId", "int", new FieldMapping(garage.getAttribute("id")))));
         docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fName", "string", new FieldMapping(garage.getAttribute("name")))));
-        docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(garage.getAttribute("address")))));                //docTypeRepairs.addField(new SimpleField(docTypeRepairs, "fDate", "date", new FieldMapping(repairs.getAttribute("date"))));
+        docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fAddress", "string", new FieldMapping(garage.getAttribute("address")))));                //docTypeRepairs.addField(new SimpleField(docTypeRepairs, "fDate", "date", new FieldMapping(repairs.getAttribute("date"))));
         docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fDate", "date", new FieldMapping(repairs.getAttribute("date")))));
         docTypeCar.addArrayField(new ArrayField ("data_Garage", new SimpleField(docTypeCar, "fFix", "string", new FieldMapping(repairs.getAttribute("fix")))));
         mongoSchema.addDocumentType(docTypeCar);
@@ -70,11 +70,11 @@ public class ModelSampleManyToMany1b {
         docTypeGarage.addField(new SimpleField(docTypeGarage, "_id", "int", new FieldMapping(garage.getAttribute("id"))));
         docTypeGarage.addField(new SimpleField(docTypeGarage, "fName", "string", new FieldMapping(garage.getAttribute("name"))));
         docTypeGarage.addField(new SimpleField(docTypeGarage, "fAddress", "string", new FieldMapping(garage.getAttribute("address"))));
-        docTypeGarage.addArrayField(new ArrayField ("docTypeGarage", new SimpleField(docTypeGarage, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
-        docTypeGarage.addArrayField(new ArrayField ("docTypeGarage", new SimpleField(docTypeGarage, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
-        docTypeGarage.addArrayField(new ArrayField ("docTypeGarage", new SimpleField(docTypeGarage, "fColor", "string", new FieldMapping(car.getAttribute("color")))));     
-        docTypeGarage.addArrayField(new ArrayField ("docTypeGarage", new SimpleField(docTypeGarage, "fDate", "date", new FieldMapping(repairs.getAttribute("date")))));
-        docTypeGarage.addArrayField(new ArrayField ("docTypeGarage", new SimpleField(docTypeGarage, "fFix", "string", new FieldMapping(repairs.getAttribute("fix")))));
+        docTypeGarage.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeGarage, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
+        docTypeGarage.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeGarage, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
+        docTypeGarage.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeGarage, "fColor", "string", new FieldMapping(car.getAttribute("color")))));     
+        docTypeGarage.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeGarage, "fDate", "date", new FieldMapping(repairs.getAttribute("date")))));
+        docTypeGarage.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeGarage, "fFix", "string", new FieldMapping(repairs.getAttribute("fix")))));
         mongoSchema.addDocumentType(docTypeGarage);
         
         

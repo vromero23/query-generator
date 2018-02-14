@@ -20,7 +20,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/QueryGeneratorManyToOne.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/ModelSampleManyToMany1b.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/algorithm/FindOperation.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/algorithm/MainAlgorithm.java</file>
+            <file>file:/C:/Users/Vivi/Documents/NetBeansProjects/query-generator/query-generator/QueryGenerator/src/querygenerator/QueryGeneratorManyToMany.java</file>
         </group>
     </open-files>
 </project-private>

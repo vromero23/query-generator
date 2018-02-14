@@ -41,6 +41,8 @@ public class FindOperation extends Operation {
         String EntityCardinality2 = " ";
         String RelationshipName = "";
         RelationshipName = r.getName();
+        
+        String dataUpdateManyToMany = " ";
 
         Map<ERElement, List<Pair<String, String>>> fieldsToProject = new HashMap<>();
         for (Field f : result.getNewFields()) {
@@ -201,42 +203,108 @@ public class FindOperation extends Operation {
                     }
                 } else if (entity1Cardinality.equals("Many") && ere.getName() == entity1.getName() && entity2Cardinality.equals("Many") ) 
                 {
-                    ret += "   db.EC.insert( {\n";
-                    ret += "      data_" + ere.getName() + ": {\n";
-                    for (Pair<String, String> fieldName : fields) {
-                        ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
-                    }
-                    ret += "      }";
-                    if (erElementsNew.size() == 1) {
-                        ret += "\n      ,data_Join: []";
+                    //entra aqui 
+                    if(result.getArrayField().size() > 0){
+                        String nameArrayField = " ";
+                        List<ArrayField> listArrayField = new ArrayList<>();
+                        listArrayField = result.getArrayField();
+                        for (ArrayField af : listArrayField) {
+                            nameArrayField = af.getName();
+                        }
+                        ret += "   data." + nameArrayField + ".forEach(function(data1){\n";
+                        ret += "        db.EC.insert( {\n";
+                        ret += "            data_" + ere.getName() + ": {\n";
+                        
+                       
+                        for (Pair<String, String> fieldName : fields) {
+                            int docTypeE1 = docType.getName().toLowerCase().indexOf(er1.getName().toLowerCase().toString());
+                            int resultado = fieldName.getSecond().toLowerCase().indexOf("id");
+                            //Do docType tem mesmo nome da Entidade 1, então os dados não estarão dentro do documento embutido, array field
+                            if (docTypeE1 != -1) {
+                                dataUpdateManyToMany = "data.";
+                                if (resultado != -1) {
+                                    identificadorManytoOne = fieldName.getSecond();
+                                    ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                } else {
+                                    ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                }  
+                            } else { //provavelmente estarão os dados da E1, dentro do arrayfield o doc embutido
+                                dataUpdateManyToMany = "data1.";
+                                if (resultado != -1) {
+                                    identificadorManytoOne = fieldName.getSecond();
+                                    ret += "                " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                } else {
+                                    ret += "                " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                }
+                            }
+                           
+                        }
+                        ret += "            },";
+                        ret += "\n          data_Join: []});\n";
+                        updateManytoOne = "data_" + ere.getName();
                     } else {
-                        ret += "\n      ,data_Join: [{\n";
+                        ret += "   db.EC.insert( {\n";
+                        ret += "      data_" + ere.getName() + ": {\n";
+                        for (Pair<String, String> fieldName : fields) {
+                            ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                        }
+                        ret += "      }";
+                        if (erElementsNew.size() == 1) {
+                            ret += "\n      ,data_Join: []";
+                        } else {
+                            ret += "\n      ,data_Join: [{\n";
+                        }
                     }
                 }
             } else {
                 if (entity1Cardinality.equals("Many") && (result.getArrayField().size() > 0)){
                     if (entity2Cardinality.equals("Many") && !updateManytoOne.equals(" ")) {
-                        //if (ere.getName().equals(RelationshipName)) {
+                        //aqui entra solo cuando es N -N?????
+                        if (ere.getName().equals(RelationshipName)) {
+                            ret += "   db.EC.createIndex({ '"+ updateManytoOne + "." + identificadorManytoOne + "': 1 }, {unique: true } );\n";
                             ret += "   db.EC.update( {";
-                            ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':data1." + identificadorManytoOne + "},\n";
-                            ret += "{   $set: { \n";
-                            ret += "        'data_Join': [{\n";
+                            ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':" + dataUpdateManyToMany + identificadorManytoOne + "},\n";
+                            //ret += "   {$set: { \n";
+                            ret += "   {$addToSet: { \n"; 
+                            ret += "        'data_Join': {\n";
                             ret += "                data_" + ere.getName() + ": {\n";
                             for (Pair<String, String> fieldName : fields) {
-                                ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                ret += "                    " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
                             }
-                            ret += "        }";
-                        //}
-                        /*else if (!ere.getName().equals(RelationshipName)) {
-                            ret += "\n                data_" + ere.getName() + ": {\n";
-                            for (Pair<String, String> fieldName : fields) {
-                                ret += "                " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            ret += "                },\n";
+                        } else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() > 0) {
+                            //int existeE1ArrayField = nameArrayField2.toLowerCase().indexOf(er1.getName().toLowerCase().toString());
+                            int docTypeE2 = docType.getName().toLowerCase().indexOf(ere.getName().toLowerCase().toString());                      
+                            if (docTypeE2 != -1) {
+                                ret += "                data_" + ere.getName() + ": {\n";
+                                for (Pair<String, String> fieldName : fields) {
+                                    ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                }
+                                ret += "                }";
+                                //ret += "\n";
+                                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                                if (erElementsNew.size() > 1) {
+                                    ret += ",\n";
+                                }
+                            }else {
+                                ret += "                data_" + ere.getName() + ": {\n";
+                                for (Pair<String, String> fieldName : fields) {
+                                    ret += "                    " + fieldName.getFirst() + ": data1." + fieldName.getSecond() + ",\n";
+                                }
+                                ret += "                }";
+                                //ret += "\n";
+                                //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                                if (erElementsNew.size() > 1) {
+                                    ret += ",\n";
+                                }
                             }
-                            ret += "        }";
-                        }*/
+
+                        //modificado porque gerava com erro consulta manyToone1a
+                        // if (ere.getName().equals(RelationshipName)){
                         if (erElements.size() == nItem) {
-                            ret += "        }]\n";
+                            ret += "        }\n";
                             ret += "     }});\n";
+                        }
                         }
                     }
                     else 
@@ -253,12 +321,15 @@ public class FindOperation extends Operation {
                             }
                             ret += "                },\n";
                         } else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() > 0){
+                           
+                            
                             String nameArrayField2 = " ";
                             List<ArrayField> listArrayField = new ArrayList<>();
                             listArrayField = result.getArrayField();
                             for (ArrayField af : listArrayField) {
                                 nameArrayField2 = af.getName();
                             }
+                          
                             int resultado = nameArrayField2.toLowerCase().indexOf(ere.getName().toLowerCase());
                             if (resultado != -1) {
                                 ret += "                data_" + ere.getName() + ":" + "data.data_" + ere.getName();

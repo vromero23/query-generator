@@ -348,21 +348,10 @@ public class JoinOperation extends Operation {
                             }
                             ret += "                        },\n";
                         }
-                        /*if (erElements.size() > 1) {
-                            ret += ",\n";
-                        }*/
-                        /*if (nItem == erElementsNew.size()) {
-                            ret += "              }}";
-                            ret += "\n          });\n";
-                        }*/
                     }
                     ret += "                }\n"
                     + "         }});\n"
                     + "       });\n"
-                            //+ "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                            //+ "                 { $set: { \n"
-                            //+ " 'data_Join': varData \n"
-                           // + "} } );   \n"
                      + "   });\n"
                      + "   });";
                     return ret;
@@ -648,9 +637,9 @@ public class JoinOperation extends Operation {
                             + "db." + rfp + ".findOne("
                             + "{ '" + rf + "': data2." + newlf + " });\n"
                             + "     novoArray.push(data2);"
-                            + "\n });";
+                            + "\n });\n";
 
-                    ret += "\ndb.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
                             + "                 { $set: { \n"
                             + " 'data_Join': novoArray \n"
                             + "} } );   \n"
@@ -797,7 +786,7 @@ public class JoinOperation extends Operation {
                             + "db." + rfp + ".findOne("
                             + "{ '" + rf + "': data2." + newlf + " });\n"
                             + "     novoArray.push(data2);"
-                            + "\n });";
+                            + "\n });\n";
 
                     ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
                             + "                 { $set: { \n"
@@ -891,9 +880,9 @@ public class JoinOperation extends Operation {
                             + "db." + rfp + ".findOne("
                             + "{ '" + rf + "': data2." + newlf + " });\n"
                             + "     novoArray.push(data2);"
-                            + "\n });";
+                            + "\n });\n";
 
-                    ret += "\ndb.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
                             + "                 { $set: { \n"
                             + " 'data_Join': novoArray \n"
                             + "} } );   \n"
@@ -902,7 +891,60 @@ public class JoinOperation extends Operation {
                 }
             }
             if (entity1Cardinality.equals("Many") && entity2Cardinality.equals("Many")) {
-                //vai completar atributos da primeira Entidade, E1
+                if (result.getArrayField().size() > 0 && (!er1.getName().equals(nomeEntidadeValorDois))) {
+                    String ret = "db.EC.find().forEach( function(data){\n"
+                            + "    var varData = [];\n"
+                            + "    data.data_Join.forEach(function(data1) {\n"
+                            + "            db." + rfp + ".find("
+                            + "{ '" + rf + "': data1.";
+                            String nameArrayField2 = " ";
+                            List<ArrayField> listArrayField2 = new ArrayList<>();
+                            listArrayField2 = result.getArrayField();
+                            for (ArrayField af : listArrayField2) {
+                                nameArrayField2 = af.getName();
+                            }
+                            ret += nameArrayField2 + ".";
+                            ret += lfArrayField + "}).forEach(function(data2) {\n"
+                            + "           varData.push( { \n";
+                            
+                        for (ERElement ere : erElements) {
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            List<Pair<String, String>> fields = fieldsToProject.get(ere);
+                            for (Pair<String, String> fieldName : fields) {
+                                if (fieldName.getSecond().toString() == "_id") {
+                                    if(!ere.getName().equals(RelationshipName)){
+                                        ret += "                        " + lfArrayField + ": data2." + fieldName.getSecond() + ",\n";
+                                    }
+                                } else {
+                                    if(!ere.getName().equals(RelationshipName)){
+                                        ret += "                        " + fieldName.getFirst() + ": data2." + fieldName.getSecond() + ",\n";
+                                    }
+                                }    
+                            }
+                    }
+                    ret += "                },\n";
+                    ret += "                data_" + RelationshipName + ": {\n";
+                    List<ArrayField> listArrayField = new ArrayList<>();
+                    listArrayField = result.getArrayField();
+                    for (ArrayField af : listArrayField) {
+                        if (af.getFields() instanceof SimpleField){
+                            SimpleField sf = (SimpleField) af.getFields();
+                            if(sf.getFieldMapping().getAttribute().getParent().getName().equals(RelationshipName)){
+                                 ret += "                        " + sf.getName()  + ": data1." + "data_" + RelationshipName + "." +  sf.getName() + ",\n";
+                            }
+                        }
+                    }
+                    ret += "                }\n"
+                    + "       })\n"
+                    + "   });\n"
+                    + "});\n"
+                    + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                    + "{ $set: { \n"
+                    + "         'data_Join': varData\n"
+                    + "} } );   \n"
+                    + "});";
+                    return ret;
+                } else //vai completar atributos da primeira Entidade, E1
                 if (er1.getName() == nomeEntidadeValorDois) {
                     //System.out.println("TEM DE COMPLETAR ATRIBUTOS DA ENTIDADE 1");
                     String ret = "db.EC.find().forEach( function(data){\n"
@@ -929,10 +971,11 @@ public class JoinOperation extends Operation {
                                 ret += ",\n";
                             }
                             ret += "})}) ;\n";
-                            ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                            ret += "db.EC.updateMany( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
                                     + "                 { $set: { \n"
                                     + " 'data_" + ere.getName() + "': varData[0]." + "data_" + ere.getName() + "\n"
                                     + "} } ) });   \n";
+                            return ret;
                         } else {
                             //pode acontecer que a ENTIDADE1 contenha atributos de outras entidades que sao parte de query attributes
                             //tem atributos que nao sao da entidade1, mas que precisam ser completados
@@ -970,89 +1013,30 @@ public class JoinOperation extends Operation {
                                         + " 'data_Join': varData \n"
                                         + "} } );   \n"
                                         + "});";
-
                             }
-
+                            return ret;
                         }
                     }
-                    return ret;
+                    //return ret;
                 } else {
-                    if(result.getArrayField().size()>0){
-                        String ret = "db.EC.find().forEach( function(data){\n"
-                                + "    var varData = [];\n"
-                                + "    var varData2 = [];\n"
-                                + "    data.data_Join.forEach(\n"
-                                + "      function(data1) {\n"
-                                + "        data1." + lf + ".forEach(\n"
-                                + "        function(data2){\n"
-                                + "            db." + rfp + ".find("
-                                + "{ '" + rf + "': data2." + lfArrayField + " }).forEach(\n"
-                                + "                function(data3) {\n"
-                                + "                varData.push( { \n";
-                        for (ERElement ere : erElements) {
-                            List<Pair<String, String>> fields = fieldsToProject.get(ere);
-                            for (Pair<String, String> fieldName : fields) {
-                                if (fieldName.getSecond().toString() == "_id") {
-                                    if (!ere.getName().equals(RelationshipName)) {
-                                        ret += "                    " + lfArrayField + ": data3." + fieldName.getSecond() + ",\n";
-                                    }
-                                } else if (!ere.getName().equals(RelationshipName)) {
-                                    ret += "                    " + fieldName.getFirst() + ": data3." + fieldName.getSecond() + ",\n";
-                                }
-                            }
-                            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
-                            /*if (erElements.size() > 1) {
-                            ret += ",\n";
-                        }*/
-                        }
-                        ret += "           })\n"
-                                + "       });\n"
-                                + "   });\n"
-                                // + "});\n"
-                                //   + "varData2.push({ " + lf + ": varData});\n"
-                                + "varData2.push({ \n";
-                        for (ERElement ere : erElements) {
-                            List<Pair<String, String>> fields = fieldsToProject.get(ere);
-                            for (Pair<String, String> fieldName : fields) {
-                                if (ere.getName().equals(RelationshipName)) {
-                                    ret += "        data_" + ere.getName() + ": {\n";
-                                    ret += "         " + fieldName.getFirst() + ": data1." + "data_" + ere.getName() + "." + fieldName.getSecond() + ",\n";
-                                }
-                            }
-                        }
-                        if (erElements.size() > 1) {
-                            ret += "},\n";
-                        }
-                        //ret+= "         },\n"
-                        ret += "         " + lf + ": varData});\n"
-                                + "});\n"
-                                + "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                                + "                 { $set: { \n"
-                                + " 'data_Join': varData2 \n"
-                                + "} } );   \n"
-                                + "});";
-                        return ret;
-                    } else {
+                    //   aqui completa atributos  que NÃO são da ENTIDADE 1    
+                    String ret = "db.EC.find().forEach( function(data){\n"
+                            + "     var novoArray = [];\n"
+                            + "     data.data_Join.forEach(function(data2) {\n"
+                            + "     data2." + lf + " = "
+                            + "db." + rfp + ".findOne("
+                            + "{ '" + rf + "': data2." + newlf + " });\n"
+                            + "     novoArray.push(data2);"
+                            + "\n });\n";
 
-                        //   aqui completa atributos  que NÃO são da ENTIDADE 1    
-                        String ret = "db.EC.find().forEach( function(data){\n"
-                                + "     var novoArray = [];\n"
-                                + "     data.data_Join.forEach(function(data2) {\n"
-                                + "     data2." + lf + " = "
-                                + "db." + rfp + ".findOne("
-                                + "{ '" + rf + "': data2." + newlf + " });\n"
-                                + "     novoArray.push(data2);"
-                                + "\n });";
-
-                        ret += "\ndb.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
-                                + "                 { $set: { \n"
-                                + " 'data_Join': novoArray \n"
-                                + "} } );   \n"
-                                + "});";
-                        return ret;
-                    }
+                    ret += "db.EC.update( {'data_" + newFieldWhere + "': data.data_" + newFieldWhere + "},\n"
+                            + "                 { $set: { \n"
+                            + " 'data_Join': novoArray \n"
+                            + "} } );   \n"
+                            + "});";
+                    return ret;
                 }
-            }
+            }                
         }
         return null;
     }

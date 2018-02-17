@@ -68,10 +68,10 @@ public class ModelSampleOneToMany1f {
         docTypeDrives.addERMapping(new ERMapping(person, false));
         docTypeDrives.addERMapping(new ERMapping(car, false));
         docTypeDrives.addField(new SimpleField(docTypeDrives, "_id", "int", new FieldMapping(person.getAttribute("id"))));
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fName", "string", new FieldMapping(person.getAttribute("name"))));        
-        docTypeDrives.addField(new SimpleField(docTypeDrives, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
+        //docTypeDrives.addField(new SimpleField(docTypeDrives, "fName", "string", new FieldMapping(person.getAttribute("name"))));        
+        //docTypeDrives.addField(new SimpleField(docTypeDrives, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fCarId", "int", new FieldMapping(car.getAttribute("id")))));
-       // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
+        //docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate")))));
        // docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color")))));
         docTypeDrives.addArrayField(new ArrayField ("data_Car", new SimpleField(docTypeCar, "fObservation", "string", new FieldMapping(drives.getAttribute("observation")))));                 
         

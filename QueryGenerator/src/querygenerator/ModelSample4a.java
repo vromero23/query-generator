@@ -55,7 +55,7 @@ public class ModelSample4a {
         docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-       // docTypePerson.addField(new SimpleField(docTypePerson, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
+        docTypePerson.addField(new SimpleField(docTypePerson, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));        
 
         

@@ -64,6 +64,7 @@ public class ModelSample1b {
         DocumentType docTypeRegistration = new DocumentType("DocTypeRegistration");
         docTypeRegistration.addERMapping(new ERMapping(registration, true));
         docTypeRegistration.addERMapping(new ERMapping(driversLicense, false));
+        docTypeRegistration.addERMapping(new ERMapping(person, false));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "_id", "int", null));
         docTypeRegistration.addField(new SimpleField(docTypeRegistration, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
     

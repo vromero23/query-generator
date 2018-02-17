@@ -57,6 +57,7 @@ public class ModelSampleOneToMany1d {
         DocumentType docTypeCar = new DocumentType("DocTypeCar");
         docTypeCar.addERMapping(new ERMapping(car, true));
         docTypeCar.addERMapping(new ERMapping(drives, true));
+        docTypeCar.addERMapping(new ERMapping(person, false));
         docTypeCar.addField(new SimpleField(docTypeCar, "_id", "int", new FieldMapping(car.getAttribute("id"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fPlate", "string", new FieldMapping(car.getAttribute("plate"))));
         docTypeCar.addField(new SimpleField(docTypeCar, "fColor", "string", new FieldMapping(car.getAttribute("color"))));

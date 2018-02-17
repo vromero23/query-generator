@@ -24,7 +24,7 @@ import querygenerator.mongoschema.SimpleField;
  *
  * @author daniellucredio
  */
-public class ModelSample2a {
+public class ModelSample2c {
 
     public static MappingModel getModel() {
         ERModel erModel = new ERModel();
@@ -88,27 +88,28 @@ public class ModelSample2a {
 
         DocumentType docTypePerson = new DocumentType("DocTypePerson");
         docTypePerson.addERMapping(new ERMapping(person, true));
-        docTypePerson.addERMapping(new ERMapping(registration, false));
-        docTypePerson.addERMapping(new ERMapping(driversLicense, false));
         docTypePerson.addField(new SimpleField(docTypePerson, "_id", "int", new FieldMapping(person.getAttribute("id"))));
         docTypePerson.addField(new SimpleField(docTypePerson, "fName", "string", new FieldMapping(person.getAttribute("name"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));
-        docTypePerson.addField(new SimpleField(docTypePerson, "observation", "string", new FieldMapping(registration.getAttribute("observation"))));
-
-        DocumentType docTypeDriversLicense2 = new DocumentType("DocTypeDriversLicense");
-        docTypeDriversLicense2.addERMapping(new ERMapping(driversLicense, false));
-        docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDriversLicenseId", "int", new FieldMapping(driversLicense.getAttribute("id"))));
-        //docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
-        //docTypeDriversLicense2.addField(new SimpleField(docTypeDriversLicense2, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
-        docTypePerson.addField(new EmbeddedField(docTypePerson, "data_DriversLicense", docTypeDriversLicense2));
-
+        docTypePerson.addField(new SimpleField(docTypePerson, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));        
         mongoSchema.addDocumentType(docTypePerson);
 
         DocumentType docTypeDriversLicense = new DocumentType("DocTypeDriversLicense");
         docTypeDriversLicense.addERMapping(new ERMapping(driversLicense, true));
+        docTypeDriversLicense.addERMapping(new ERMapping(person, false));
+        docTypeDriversLicense.addERMapping(new ERMapping(registration, true));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "_id", "int", new FieldMapping(driversLicense.getAttribute("id"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fNumber", "int", new FieldMapping(driversLicense.getAttribute("number"))));
         docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fDate", "date", new FieldMapping(driversLicense.getAttribute("date"))));
+        docTypeDriversLicense.addField(new SimpleField(docTypeDriversLicense, "fObservation", "string", new FieldMapping(registration.getAttribute("observation"))));
+        
+        DocumentType docTypePerson2 = new DocumentType("DocTypePerson2");
+        docTypePerson2.addERMapping(new ERMapping(person, false));
+        docTypePerson2.addField(new SimpleField(docTypePerson2, "fPersonId", "int", new FieldMapping(person.getAttribute("id"))));
+        docTypePerson2.addField(new SimpleField(docTypePerson2, "fName", "string", new FieldMapping(person.getAttribute("name"))));
+        docTypePerson2.addField(new SimpleField(docTypePerson2, "fAddress", "string", new FieldMapping(person.getAttribute("address"))));        
+
+        
+        docTypeDriversLicense.addField(new EmbeddedField(docTypeDriversLicense, "data_Person", docTypePerson2));
         mongoSchema.addDocumentType(docTypeDriversLicense);
 
         DocumentType docTypeRegistration = new DocumentType("DocTypeRegistration");

@@ -24,11 +24,10 @@ public class QueryGenerator2a {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MappingModel mm = ModelSample4e.getModel();
+        MappingModel mm = ModelSample2a.getModel();
         System.out.println(mm.toString());
 
         MainAlgorithm ma = new MainAlgorithm(mm);
-
         Entity person = (Entity) mm.getERModel().findERElement("Person");
         Relationship registration = (Relationship) mm.getERModel().findERElement("Registration");
         Entity driversLicense = (Entity) mm.getERModel().findERElement("DriversLicense");

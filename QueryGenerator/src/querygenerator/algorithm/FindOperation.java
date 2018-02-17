@@ -15,6 +15,7 @@ import querygenerator.ermodel.Entity;
 import querygenerator.ermodel.Relationship;
 import querygenerator.mongoschema.ArrayField;
 import querygenerator.mongoschema.DocumentType;
+import querygenerator.mongoschema.ERMapping;
 import querygenerator.mongoschema.EmbeddedField;
 import querygenerator.mongoschema.Field;
 import querygenerator.mongoschema.SimpleField;
@@ -135,6 +136,17 @@ public class FindOperation extends Operation {
         String identificadorManytoOne = " ";
         String updateManytoOne = " ";
         
+        //verificar se faz find da Entidade1 num documento onde o mapeamento dela
+        //esteja como main=false
+        for (ERMapping  eMapping: docType.getERMappingList()){
+            if (eMapping.getERElement().equals(er1)){
+                if (eMapping.isMain()==false){
+                    System.out.println("\nA consulta pode não retornar todos os dados, a Entidade 1: " +
+                            er1.getName() + " não é principal no documento: " + docType.getName() + "\n");
+                }
+            }
+        }
+        
         String ret = "db." + docType.getName() + ".find().forEach( function(data) {\n";
         for (ERElement ere : erElementsNew) {
             List<Pair<String, String>> fields = fieldsToProject.get(ere);
@@ -192,14 +204,27 @@ public class FindOperation extends Operation {
                         ret += "   db.EC.insert( {\n";
                         ret += "      data_" + ere.getName() + ": {\n";
                         for (Pair<String, String> fieldName : fields) {
-                            ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            //ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+  
+                            int resultado = fieldName.getSecond().toLowerCase().indexOf("id");
+                                if (resultado != -1) {
+                                    identificadorManytoOne = fieldName.getSecond();
+                                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                } else {
+                                    ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                                }
                         }
                         ret += "      }";
                         if (erElementsNew.size() == 1) {
                             ret += "\n      ,data_Join: []";
                         } else {
-                            ret += "\n      ,data_Join: [{\n";
+                            if(erElementsNew.size()>0 && entity2Cardinality.equals("Many")){
+                                ret += "\n      ,data_Join: []";
+                            } else {
+                                ret += "\n      ,data_Join: [{\n";
+                            }
                         }
+                        updateManytoOne = "data_" + ere.getName();
                     }
                 } else if (entity1Cardinality.equals("Many") && ere.getName() == entity1.getName() && entity2Cardinality.equals("Many") ) 
                 {
@@ -245,15 +270,22 @@ public class FindOperation extends Operation {
                     } else {
                         ret += "   db.EC.insert( {\n";
                         ret += "      data_" + ere.getName() + ": {\n";
-                        for (Pair<String, String> fieldName : fields) {
-                            ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                        for (Pair<String, String> fieldName : fields) {                           
+                            int resultado = fieldName.getSecond().toLowerCase().indexOf("id");
+                            if (resultado != -1) {
+                                identificadorManytoOne = fieldName.getSecond();
+                                ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            } else {
+                                ret += "         " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            }  
                         }
                         ret += "      }";
-                        if (erElementsNew.size() == 1) {
-                            ret += "\n      ,data_Join: []";
-                        } else {
-                            ret += "\n      ,data_Join: [{\n";
-                        }
+                        //if (erElementsNew.size() == 1) {
+                            ret += "\n      ,data_Join: []});\n";
+                        //} else {
+                        //    ret += "\n      ,data_Join: [{\n";
+                       // }
+                         updateManytoOne = "data_" + ere.getName();
                     }
                 }
             } else {
@@ -404,7 +436,7 @@ public class FindOperation extends Operation {
                                     ret += "\n          });\n";
                                 }
                             }
-                    } else {
+                    } else if (entity2Cardinality.equals("One")){
                         ret += "                data_" + ere.getName() + ": {\n";
                         for (Pair<String, String> fieldName : fields) {
                             ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
@@ -418,6 +450,85 @@ public class FindOperation extends Operation {
                         if (nItem == erElementsNew.size()) {
                             ret += "            }]\n";
                         }
+                    } else if (entity1Cardinality.equals("One") && entity2Cardinality.equals("Many")){
+                        if (ere.getName().equals(RelationshipName)) {
+                            ret += "    });\n";
+                            
+                            //se identificadorManytoOne contem ponto (.) é porque esta concatenado com NomeDocEmbutido.atributo
+                            int resultado = identificadorManytoOne.toLowerCase().indexOf(".");
+                            if (resultado != -1) {
+                                ret += "   db.EC.createIndex({ '"+ identificadorManytoOne + "': 1 }, {unique: true } );\n";
+                                ret += "   db.EC.update( {";
+                                ret += "'" + identificadorManytoOne + "':" + "data." + identificadorManytoOne + "},\n";
+                            } else {
+                                ret += "   db.EC.createIndex({ '"+ updateManytoOne + "." + identificadorManytoOne + "': 1 }, {unique: true } );\n"; 
+                                ret += "   db.EC.update( {";
+                                ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':" + "data." + identificadorManytoOne + "},\n";
+                                
+                            }
+                            
+                            ret += "   {$addToSet: { \n"; 
+                            ret += "        'data_Join': {\n";
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            for (Pair<String, String> fieldName : fields) {
+                                ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            }
+                            ret += "                },\n";
+                        } else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() == 0) {
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            for (Pair<String, String> fieldName : fields) {
+                                ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            }
+                            ret += "                }";
+                            //ret += "\n";
+                            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                            if (erElementsNew.size() > 1) {
+                                ret += ",\n";
+                            }
+                        }
+                        if (erElements.size() == nItem) {
+                            ret += "        }\n";
+                            ret += "     }\n";
+                        }
+                    } else if (entity1Cardinality.equals("Many") && entity2Cardinality.equals("Many")){
+                       if (ere.getName().equals(RelationshipName)) {
+                          
+                            //se identificadorManytoOne contem ponto (.) é porque esta concatenado com NomeDocEmbutido.atributo
+                            int resultado = identificadorManytoOne.toLowerCase().indexOf(".");
+                            if (resultado != -1) {
+                                ret += "   db.EC.createIndex({ '"+ identificadorManytoOne + "': 1 }, {unique: true } );\n";
+                                ret += "   db.EC.update( {";
+                                ret += "'" + identificadorManytoOne + "':" + "data." + identificadorManytoOne + "},\n";
+                            } else {
+                                ret += "   db.EC.createIndex({ '"+ updateManytoOne + "." + identificadorManytoOne + "': 1 }, {unique: true } );\n"; 
+                                ret += "   db.EC.update( {";
+                                ret += "'" + updateManytoOne + "." + identificadorManytoOne + "':" + "data." + identificadorManytoOne + "},\n";
+                                
+                            }
+                            
+                            ret += "   {$addToSet: { \n"; 
+                            ret += "        'data_Join': {\n";
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            for (Pair<String, String> fieldName : fields) {
+                                ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            }
+                            ret += "                },\n";
+                        } else if (!ere.getName().equals(RelationshipName) && result.getArrayField().size() == 0) {
+                            ret += "                data_" + ere.getName() + ": {\n";
+                            for (Pair<String, String> fieldName : fields) {
+                                ret += "                    " + fieldName.getFirst() + ": data." + fieldName.getSecond() + ",\n";
+                            }
+                            ret += "                }";
+                            //ret += "\n";
+                            //se tiver mais de um elemento no erElements, adicionar virgula(foi adicionado porque no mongo da erro se nao tiver)
+                            if (erElementsNew.size() > 1) {
+                                ret += ",\n";
+                            }
+                        }
+                        if (erElements.size() == nItem) {
+                            ret += "        }\n";
+                            ret += "     }\n";
+                        } 
                     }
                 }
             }

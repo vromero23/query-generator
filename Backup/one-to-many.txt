@@ -1,0 +1,676 @@
+
+A N:M relationship in the ER model is an example of a relationship between two entity types where they both might have many relationships between entities. An example might be a Book that was written by many Authors. At the same time an Author might have written many Books.
+N:M relationships are modeled in the relational database by using a join table that contains the primary keys from the original ones, each representing a foreign key, and two 1:M relationships.
+In MongoDB we can represent this situation in many ways. The first way is called Two Way Embedding [Trivedi (2014)], [Membrey at al. (2014)].
+In Two Way Embedding we will include the Book foreign keys under the book field in the author document. Mirroring the Author document, for each Book we include the Author foreign keys under the Author field in the book document.
+
+Another way of modeling N:M relationships is called One Way Embedding [Trivedi(2014)], [Membrey at al. (2014)].
+// ===== Entidades / relacionamentos =====
+// Obs, neste modelo, o relacionamento 1:N pode ser incompleto
+// Essa generalização é importante para que o algoritmo funcione
+// em qualquer situação (ainda que não seja muito real)
+
+
+
+================
+==  ER Model  ==
+================
+
+Person
+{
+   id : int
+   name : string
+   address : string
+}
+
+Car
+{
+   id : int
+   plate : string
+   color : string
+}
+
+Drives (Person, Car) 1:N
+{
+	observation: string
+}
+OBSERVAÇÃO: O mapeamento do relacionamento Drives dentro de DocTypeCar ou DocTypeDrives deve ser main true! senão ele não vai avanzar muito pra
+fazer a consulta., pelo menos se não existe DocTypeDrives. No Mapeamento 1-N , N-1 e N-N, acho que deve ter sempre main true!!!
+
+OBSERVAÇÃO: de momento estamos mapeando o atributo do relacionamento dentro do documento que tem embutido o outro doc,
+ ou referenciado outro doc(cardinalidade N).
+ 
+OBSERVAÇÃO: acho que para mapeamento de 1-1 até pode ser opcional os identificadores, mas pra os demais mapeamentos, não pode ser opcional!!!
+Pode ser opcional de 1-1 quando os dados estão todos dentro de um mesmo documento!
+**********************************************************************************************************************
+Mongo opção: OneToMany1a
+
+DocTypePerson [ Person (main=true) , Car (main=false), Drives (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+   Drives:
+		[ 
+			{
+			   fCardId int [ Car.id ]	
+			   fPlate : string [ Car.plate ] //opcional
+			   fColor : string [ Car.color ] //opcional,
+			   fObservation: string [Drives.observation] 
+			}
+		]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+ 
+======================Query MongoDB 1 ==================================
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []});
+      data.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id':data._id},
+            { $addToSet: { 
+                'data_Join': {
+                    data_Drives: {
+                        fObservation: data1.fObservation,
+                    },
+                    data_Car: {
+                        fCarId: data1.fCarId,
+                    },
+              }}
+          });
+        });
+});
+
+db.EC.find().forEach( function(data){
+     var varData = [];
+     data.data_Join.forEach(function(data1) {
+         db.DocTypeCar.find({ '_id': data1.data_Car.fCarId }).forEach(function(data2) {
+         varData.push( { 
+            data_Car: {
+                        fCarId: data2._id,
+                        fPlate: data2.fPlate,
+                        fColor: data2.fColor
+          },        
+          data_Drives: {
+            fObservation: data1.data_Drives.fObservation,
+         }
+          })
+          }) ;
+      });
+db.EC.update( {'data_Person._id': data.data_Person._id},
+                 { $set: { 
+ 'data_Join': varData
+} } );  
+});   
+
+ 
+**********************************************************************************************************************
+Mongo opção: OneToMany1b
+
+DocTypePerson [ Person (main=true), Car (main=true), Drives (main=true)] ] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+   Car:
+    [ 
+		{
+			_id : int [ Car.id ]
+			fPlate : string [ Car.plate ]
+			fColor : string [ Car.color ]
+			fObservation: string [Drives.observation] 
+		}
+	]
+}
+
+======================= Query Mongo 1=======================
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []});
+      data.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id':data._id},
+            { $addToSet: { 
+                'data_Join': {
+                    data_Drives: {
+                        fObservation: data1.fObservation,
+                    },
+                    data_Car: {
+                        _id: data1._id,
+                        fPlate: data1.fPlate,
+                        fColor: data1.fColor,
+                    },
+              }}
+          });
+        });
+});
+
+======================= Query Mongo 2=======================
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []});
+      data.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id':data._id},
+            { $addToSet: { 
+                'data_Join': {
+                    data_Drives: {
+                        fObservation: data1.fObservation,
+                    },
+                    data_Car: {
+                        _id: data1._id,
+                    },
+              }}
+          });
+        });
+});
+(impossible) Não pode recuperar Car.plate, pois não existe um DocumentType (main=true) mapeado a Car
+(impossible) Não pode recuperar Car.color, pois não existe um DocumentType (main=true) mapeado a Car
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1c
+
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) , Person (main=false), Drives (main=true)]] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+   fPersonId : int [ Person.id ]  
+   fName : string [ Person.name ]  
+   fAddress : string [ Person.address ] 
+   fObservation: string [Drives.observation] 
+}
+ 
+ 
+======================= Query Mongo 1=======================
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     var varData2 = [];
+     data.data_Join.forEach(
+         function(dataCopy) {
+              varData.push(dataCopy);
+         });
+     db.DocTypeCar.find({ 'fPersonId': data.data_Person._id }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Drives: {
+                    fObservation: data2.fObservation,
+        },
+        data_Car: {
+                    _id: data2._id,
+                    fPlate: data2.fPlate,
+                    fColor: data2.fColor,
+        },
+    });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+                 { $set: { 
+ 'data_Join': varData 
+} } );   
+});
+
+======================= Query Mongo 2=======================
+db.DocTypeCar.find().forEach( function(data) {
+   db.EC1.insert( {
+      data_Person: {
+         fPersonId: data.fPersonId,
+      },
+          data_Join: []});
+    db.EC1.createIndex({ 'data_Person.fPersonId': 1 }, {unique: true } );          
+    db.EC1.update( {'data_Person.fPersonId':data.fPersonId},
+   {$addToSet: { 
+        'data_Join': {
+                data_Drives: {
+                    fObservation: data.fObservation,
+      },
+                data_Car: {
+                    _id: data._id,
+                    fPlate: data.fPlate,
+                    fColor: data.fColor,
+      }
+        }
+     }});
+    });
+
+db.EC1.find().forEach( function(data){
+     var varData = [];
+     db.DocTypePerson.find({ '_id': data.data_Person.fPersonId }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Person: {
+         fPersonId: data2._id,
+         fName: data2.fName,
+         fAddress: data2.fAddress,
+      }})}) ;
+db.EC1.updateMany( {'data_Person.fPersonId': data.data_Person.fPersonId},
+                 { $set: { 
+ 'data_Person': varData[0].data_Person
+} } ) });  
+ 
+**********************************************************************************************************************
+Mongo opção: OneToMany1d
+
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) , Person (main=false), Drives (main=true)]] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+   fObservation: string [Drives.observation] 
+   Person: 
+		{
+		   fPersonId : int [ Person.id ]  
+		   fName : string [ Person.name ] //opcional
+		   fAddress : string [ Person.address ] //opcional
+		}
+}
+======================= Query Mongo 1 ==========
+
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     var varData2 = [];
+     data.data_Join.forEach(
+         function(dataCopy) {
+              varData.push(dataCopy);
+         });
+     db.DocTypeCar.find({ 'data_Person.fPersonId': data.data_Person._id }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Drives: {
+                    fObservation: data2.fObservation,
+        },
+        data_Car: {
+                    _id: data2._id,
+                    fPlate: data2.fPlate,
+                    fColor: data2.fColor,
+        },
+    });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+                 { $set: { 
+ 'data_Join': varData 
+} } );   
+});
+
+
+
+======================Query MongoDB 2=========
+A consulta pode não retornar todos os dados, a Entidade 1: Person não é principal no documento: DocTypeCar
+
+db.DocTypeCar.find().forEach( function(data) {
+   db.EC1.insert( {
+      data_Person: {
+         fPersonId: data.data_Person.fPersonId,
+      },
+          data_Join: []});
+    db.EC1.createIndex({ 'data_Person.fPersonId': 1 }, {unique: true } );          
+    db.EC1.update( {'data_Person.fPersonId':data.data_Person.fPersonId},
+   {$addToSet: { 
+        'data_Join': {
+                data_Drives: {
+                    fObservation: data.fObservation,
+      },
+                data_Car: {
+                    _id: data._id,
+                    fPlate: data.fPlate,
+                    fColor: data.fColor,
+      }
+        }
+     }});
+    });
+
+db.EC1.find().forEach( function(data){
+     var varData = [];
+     db.DocTypePerson.find({ '_id': data.data_Person.fPersonId }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Person: {
+         fPersonId: data2._id,
+         fName: data2.fName,
+         fAddress: data2.fAddress,
+      }})}) ;
+db.EC1.updateMany( {'data_Person.fPersonId': data.data_Person.fPersonId},
+                 { $set: { 
+ 'data_Person': varData[0].data_Person
+} } ) });   
+  
+
+*********************************************************************************************************************
+Mongo opção: OneToMany1e
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+DocTypeDrives [ Drives (main=true), Person (main=false), Car (main=false)]] 
+{
+   fPersonId : int [ Person.id ]
+   Car: 
+		[
+			{
+				fCarId : int [ Car.id ] 
+				fPlate : string [ Car.plate ] //opcional
+				fColor : string [ Car.color ] //opcional
+				fObservation: string [Drives.observation] 
+			}
+		]
+}
+
+======================Query MongoDB 1==================================
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     data.data_Join.forEach(
+         function(dataCopy) {
+              varData.push(dataCopy);
+         });
+     db.DocTypeDrives.find({ '_id': data.data_Person._id }).forEach(
+     function(data2) {
+      data2.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id': data.data_Person._id},
+            { $addToSet: { 
+                'data_Join': {
+                        data_Drives: {
+                            fObservation: data1.fObservation,
+                        },
+                        data_Car: {
+                            fCarId: data1.fCarId,
+                        },
+                }
+         }});
+       });
+   });
+   });
+db.EC.find().forEach( function(data){
+    var varData = [];
+    data.data_Join.forEach(function(data1) {
+            db.DocTypeCar.find({ '_id': data1.data_Car.fCarId}).forEach(function(data2) {
+           varData.push( { 
+                data_Car: {
+                        fCarId: data2._id,
+                        fPlate: data2.fPlate,
+                        fColor: data2.fColor,
+                },
+                data_Drives: {
+                        fObservation: data1.data_Drives.fObservation,
+                }
+       })
+   });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+{ $set: { 
+         'data_Join': varData
+} } );   
+});
+======================Query MongoDB 2==================================
+db.DocTypeDrives.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+      }
+      ,data_Join: []});
+      data.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id':data._id},
+            { $addToSet: { 
+                'data_Join': {
+                    data_Drives: {
+                        fObservation: data1.fObservation,
+                    },
+                   data_Car: {
+                        fCarId: data1.fCarId,
+                    },
+              }}
+          });
+        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     db.DocTypePerson.find({ '_id': data.data_Person._id }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Person: {
+         _id: data2._id,
+         fName: data2.fName,
+         fAddress: data2.fAddress,
+      }})}) ;
+db.EC.updateMany( {'data_Person._id': data.data_Person._id},
+                 { $set: { 
+ 'data_Person': varData[0].data_Person
+} } ) });   
+
+db.EC.find().forEach( function(data){
+    var varData = [];
+    data.data_Join.forEach(function(data1) {
+            db.DocTypeCar.find({ '_id': data1.data_Car.fCarId}).forEach(function(data2) {
+           varData.push( { 
+                data_Car: {
+                        fCarId: data2._id,
+                        fPlate: data2.fPlate,
+                        fColor: data2.fColor,
+                },
+                data_Drives: {
+                        fObservation: data1.data_Drives.fObservation,
+                }
+       })
+   });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+{ $set: { 
+         'data_Join': varData
+} } );   
+});
+
+
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1f
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+DocTypeDrives [ Drives (main=true), Person (main=false), Car (main=false)] ] 
+{
+   fPersonId : int [ Person.id ]
+   fName : string [ Person.name ] //opcional
+   fAddress : string [ Person.address ] //opcional
+   fObservation: string [Drives.observation] 
+   Car: 
+		[
+			{
+				fCarId : int [ Car.id ] 
+				fPlate : string [ Car.plate ] //opcional
+				fColor : string [ Car.color ] //opcional
+			}
+		]
+}
+======================Query MongoDB 1==================================
+
+db.DocTypePerson.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+         fName: data.fName,
+         fAddress: data.fAddress,
+      }
+      ,data_Join: []        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     data.data_Join.forEach(
+         function(dataCopy) {
+              varData.push(dataCopy);
+         });
+     db.DocTypeDrives.find({ '_id': data.data_Person._id }).forEach(
+     function(data2) {
+      data2.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id': data.data_Person._id},
+            { $addToSet: { 
+                'data_Join': {
+                        data_Drives: {
+                            fObservation: data1.fObservation,
+                        },
+                        data_Car: {
+                            fCarId: data1.fCarId,
+                        },
+                }
+         }});
+       });
+   });
+   });
+db.EC.find().forEach( function(data){
+    var varData = [];
+    data.data_Join.forEach(function(data1) {
+            db.DocTypeCar.find({ '_id': data1.data_Car.fCarId}).forEach(function(data2) {
+           varData.push( { 
+                data_Car: {
+                        fCarId: data2._id,
+                        fPlate: data2.fPlate,
+                        fColor: data2.fColor,
+                },
+                data_Drives: {
+                        fObservation: data1.data_Drives.fObservation,
+                }
+       })
+   });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+{ $set: { 
+         'data_Join': varData
+} } );   
+});
+
+
+======================Query MongoDB 2==================================
+db.DocTypeDrives.find().forEach( function(data) {
+   db.EC.insert( {
+      data_Person: {
+         _id: data._id,
+      }
+      ,data_Join: []});
+      data.data_Car.forEach(function(data1){
+      db.EC.update( {'data_Person._id':data._id},
+            { $addToSet: { 
+                'data_Join': {
+                    data_Drives: {
+                        fObservation: data1.fObservation,
+                    },
+                   data_Car: {
+                        fCarId: data1.fCarId,
+                    },
+              }}
+          });
+        });
+});
+db.EC.find().forEach( function(data){
+     var varData = [];
+     db.DocTypePerson.find({ '_id': data.data_Person._id }).forEach(
+     function(data2) {
+     varData.push( { 
+        data_Person: {
+         _id: data2._id,
+         fName: data2.fName,
+         fAddress: data2.fAddress,
+      }})}) ;
+db.EC.updateMany( {'data_Person._id': data.data_Person._id},
+                 { $set: { 
+ 'data_Person': varData[0].data_Person
+} } ) });   
+
+db.EC.find().forEach( function(data){
+    var varData = [];
+    data.data_Join.forEach(function(data1) {
+            db.DocTypeCar.find({ '_id': data1.data_Car.fCarId}).forEach(function(data2) {
+           varData.push( { 
+                data_Car: {
+                        fCarId: data2._id,
+                        fPlate: data2.fPlate,
+                        fColor: data2.fColor,
+                },
+                data_Drives: {
+                        fObservation: data1.data_Drives.fObservation,
+                }
+       })
+   });
+});
+db.EC.update( {'data_Person._id': data.data_Person._id},
+{ $set: { 
+         'data_Join': varData
+} } );   
+});

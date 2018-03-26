@@ -1,0 +1,85 @@
+================
+==  ER Model  ==
+================
+
+Car {
+    id: int
+    plate: string
+    color: string
+}
+
+Garage {
+    id: int
+    name: string
+    address: string
+}
+
+Repairs (Car, Garage) N:N {
+    date: date
+    fix: string
+}
+
+**********************************************************************************************************************
+Mongo opção: ManyToMany1a
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+DocTypeGarage [ Garage (main=true) ] 
+{
+    id: int [ Garage.id ]
+    fName: string [Garage.name]
+    fAddress: string [Garage.address]
+}
+
+DocTypeRepairs [Repairs (main=true) ,Car (main=false),  Garage (main=false)]
+{
+    fDate: date [ Repairs.date ]
+    fFix: string [ Repairs.fix ]
+	fCarId: int [ Car.id ] 
+	fGarageId: int [ Garage.id ] 
+}
+
+**********************************************************************************************************************
+Mongo opção: ManyToMany1b
+DocTypeCar [ Car (main=true) , Garage (main=false), Repairs (main=true)] VER CONSULTA SE NAO TIVER fName E fAddress
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+   Garage: 
+   [
+	{
+		fGarageId: int [ Garage.id ] 
+		fName: string [Garage.name] //opcional
+		fAddress: string [Garage.address] //opcional
+		fDate: date [ Repairs.date ]
+		fFix: string [ Repairs.fix ]
+	}
+   ]
+}
+
+DocTypeGarage [ Garage (main=true), Car (main=false) , Repairs (main=true)] 
+{
+    id: int [ Garage.id ]
+    fName: string [Garage.name]
+    fAddress: string [Garage.address]
+	Car:
+	[
+	 {
+	   fCarId : int [ Car.id ] 
+	   fPlate : string [ Car.plate ] //opcional
+	   fColor : string [ Car.color ] //opcional
+	   fDate: date [ Repairs.date ]
+	   fFix: string [ Repairs.fix ]
+	 }
+	]
+}
+
+DocTypeRepairs (Repairs (main=true)){
+    fDate: date
+    fFix: string
+}

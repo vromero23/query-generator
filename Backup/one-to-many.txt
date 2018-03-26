@@ -1,0 +1,173 @@
+================
+==  ER Model  ==
+================
+
+Person
+{
+   id : int
+   name : string
+   address : string
+}
+
+Car
+{
+   id : int
+   plate : string
+   color : string
+}
+
+Drives (Person, Car) 1:N
+{
+	observation: string
+}
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1a
+
+DocTypePerson [ Person (main=true) , Car (main=false), Drives (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+   Drives:
+		[ 
+			{
+			   fCardId int [ Car.id ]	
+			   fPlate : string [ Car.plate ] //opcional
+			   fColor : string [ Car.color ] //opcional
+			   fObservation: string [Drives.observation] 
+			}
+		]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1b
+
+DocTypePerson [ Person (main=true), Car (main=true), Drives (main=true)] ] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+   Car:
+    [ 
+		{
+			_id : int [ Car.id ]
+			fPlate : string [ Car.plate ]
+			fColor : string [ Car.color ]
+			fObservation: string [Drives.observation] 
+		}
+	]
+}
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1c
+
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) , Person (main=false), Drives (main=true)]] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+   fPersonId : int [ Person.id ]  
+   fName : string [ Person.name ]   //opcional
+   fAddress : string [ Person.address ]  //opcional
+   fObservation: string [Drives.observation] 
+}
+ 
+**********************************************************************************************************************
+Mongo opção: OneToMany1d
+
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) , Person (main=false), Drives (main=true)]] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+   fObservation: string [Drives.observation] 
+   Person: 
+		{
+		   fPersonId : int [ Person.id ]  
+		   fName : string [ Person.name ] //opcional
+		   fAddress : string [ Person.address ] //opcional
+		}
+}
+
+**********************************************************************************************************************
+Mongo opção: OneToMany1e
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+DocTypeDrives [ Drives (main=true), Person (main=false), Car (main=false)]] 
+{
+   fPersonId : int [ Person.id ]
+   Car: 
+		[
+			{
+				fCarId : int [ Car.id ] 
+				fPlate : string [ Car.plate ] //opcional
+				fColor : string [ Car.color ] //opcional
+				fObservation: string [Drives.observation] 
+			}
+		]
+}
+**********************************************************************************************************************
+Mongo opção: OneToMany1f
+DocTypePerson [ Person (main=true)] 
+{
+   _id : int [ Person.id ]
+   fName : string [ Person.name ]
+   fAddress : string [ Person.address ]
+}
+
+DocTypeCar [ Car (main=true) ] 
+{
+   _id : int [ Car.id ]
+   fPlate : string [ Car.plate ]
+   fColor : string [ Car.color ]
+}
+
+DocTypeDrives [ Drives (main=true), Person (main=false), Car (main=false)] ] 
+{
+   fPersonId : int [ Person.id ]
+   fName : string [ Person.name ] //opcional
+   fAddress : string [ Person.address ] //opcional
+   fObservation: string [Drives.observation] 
+   Car: 
+		[
+			{
+				fCarId : int [ Car.id ] 
+				fPlate : string [ Car.plate ] //opcional
+				fColor : string [ Car.color ] //opcional
+			}
+		]
+}
